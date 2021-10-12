@@ -1,0 +1,20 @@
+version: "3.5"
+
+
+services:
+  db:
+    image: postgis/postgis:latest
+    container_name: db
+    env_file:
+      - backend/.env
+    volumes:
+      - db:/data/db
+    environment:
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-admin}
+      POSTGRES_DB: "geo"
+    ports:
+      - "5432:5432"
+
+volumes:
+  db: {}
