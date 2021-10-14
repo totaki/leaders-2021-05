@@ -87,7 +87,7 @@ DATABASES = {
         'NAME': 'geo',
         'USER': os.getenv('DB_USER', 'admin'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'admin'),
-        'HOST': 'localhost',
+        'HOST':  os.getenv('DB_HOST', 'localhost',),
         'PORT': 5432
     },
 }

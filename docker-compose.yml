@@ -16,5 +16,15 @@ services:
     ports:
       - "5432:5432"
 
+  api:
+    build: ./backend
+    environment:
+      DB_USER: ${DB_USER:-admin}
+      DB_PASSWORD: ${DB_PASSWORD:-admin}
+      DB_HOST: ${DB_USER:-db}
+    ports:
+      - "8000:8000"
+
+
 volumes:
   db: {}
