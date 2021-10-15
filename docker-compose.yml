@@ -21,7 +21,7 @@ services:
     environment:
       DB_USER: ${DB_USER:-admin}
       DB_PASSWORD: ${DB_PASSWORD:-admin}
-      DB_HOST: ${DB_USER:-db}
+      DB_HOST: ${DB_HOST:-db}
     ports:
       - "8000:8000"
 
