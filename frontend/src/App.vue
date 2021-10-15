@@ -1,16 +1,22 @@
 <template>
   <div id="app">
     <MainMap/>
+    <MainMenu/>
   </div>
 </template>
 
 <script>
 import MainMap from './components/MainMap.vue'
+import MainMenu from './components/MainMenu'
 
 export default {
   name: 'App',
   components: {
-    MainMap
+    MainMap,
+    MainMenu
+  },
+  async mounted() {
+    this.$store.dispatch("getDepartments")
   }
 }
 </script>
