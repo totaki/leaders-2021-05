@@ -4,8 +4,11 @@ const api = axios.create({
   baseURL: 'http://localhost:8000/api/v1',
 });
 
-const getDepartments = () => api.get("http://127.0.0.1:8000/api/v1/departments?format=json")
+const getDepartments = () => api.get("/departments?format=json")
+
+const getFacilities = (department) => api.get(`/facilities?department=${department}`)
 
 export default {
-  getDepartments
+  getDepartments,
+  getFacilities
 }

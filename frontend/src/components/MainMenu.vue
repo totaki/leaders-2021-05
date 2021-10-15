@@ -1,7 +1,7 @@
 <template>
   <div class="menu-wrapper" data-app>
     <v-card
-      height="400"
+      height="100%"
       width="256"
       class="mx-auto"
     >
@@ -26,7 +26,8 @@
           <v-list-item>
             <v-list-item-content>
               <v-select
-                :items="items"
+                :items="departments"
+                v-on:change="setDepartment"
                 item-text="name"
                 item-value="id"
                 label="Select"
@@ -34,6 +35,13 @@
               ></v-select>
             </v-list-item-content>
           </v-list-item>
+          <div v-for="item in facilities" :key="item.id">
+            <v-list-item>
+              <v-list-item-content>
+                    <a href="#">{{ item.name }}</a>
+              </v-list-item-content>
+            </v-list-item>
+          </div>
         </v-list>
       </v-navigation-drawer>
     </v-card>
@@ -46,8 +54,12 @@
 export default {
   name: "MainMenu",
   computed: {
-    items() {
+    departments() {
       return this.$store.getters.departments;
+    },
+    facilities() {
+      console.log(this.$store.getters.facilities)
+      return this.$store.getters.facilities;
     }
   },
   data () {
@@ -55,6 +67,11 @@ export default {
         right: null,
       }
   },
+  methods: {
+    setDepartment (department) {
+      this.$store.dispatch("getFacilities", { department })
+    }
+  }
 }
 </script>
 
@@ -63,6 +80,7 @@ export default {
     position: fixed;
     right: 16px;
     top: 16px;
+    bottom: 16px;
     z-index: 1000;
   }
 </style>
