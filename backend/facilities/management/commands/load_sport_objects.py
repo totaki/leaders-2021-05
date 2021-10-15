@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.core.management.base import BaseCommand
 
+from density.models import PopulationHex
 from facilities.models import (
     Facility,
     Department,
@@ -87,12 +88,28 @@ def load_sports_areas():
         SportsArea.objects.bulk_create(areas)
 
 
+def load_hex():
+    with open(f"{settings.BASE_DIR}/data/population_density.csv", newline="") as file:
+        reader = csv.reader(file, quotechar='"')
+        next(reader, None)
+        hexes = []
+        for row in reader:
+            hexes.append(
+                PopulationHex(
+                    polygon=row[1],
+                    population=row[2]
+                )
+            )
+        PopulationHex.objects.bulk_create(hexes)
+
+
 def clear_tables():
     SportsAreaType.objects.all().delete()
     SportType.objects.all().delete()
     Department.objects.all().delete()
     Facility.objects.all().delete()
     SportsArea.objects.all().delete()
+    PopulationHex.objects.all().delete()
 
 
 class Command(BaseCommand):
@@ -103,3 +120,4 @@ class Command(BaseCommand):
         load_departments()
         load_facilities()
         load_sports_areas()
+        load_hex()
