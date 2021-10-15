@@ -44,6 +44,7 @@ class SportsArea(models.Model):
     facility = models.ForeignKey(Facility, on_delete=models.CASCADE)
     type = models.ForeignKey(SportsAreaType, on_delete=models.CASCADE)
     sports = ArrayField(models.PositiveSmallIntegerField(), size=20)
+    square = models.FloatField(null=True)
 
     class Meta:
         db_table = 'facilities_sports_area'

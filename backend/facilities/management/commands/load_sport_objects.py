@@ -80,14 +80,24 @@ def load_sports_areas():
                     facility_id=row[1],
                     name=row[2],
                     type_id=row[3],
-                    sports=json.loads(row[4]),
+                    square=float(row[4]),
+                    sports=json.loads(row[5]),
                 )
             )
         SportsArea.objects.bulk_create(areas)
 
 
+def clear_tables():
+    SportsAreaType.objects.all().delete()
+    SportType.objects.all().delete()
+    Department.objects.all().delete()
+    Facility.objects.all().delete()
+    SportsArea.objects.all().delete()
+
+
 class Command(BaseCommand):
     def handle(self, *args, **options):
+        clear_tables()
         load_zone_types()
         load_sport_types()
         load_departments()
