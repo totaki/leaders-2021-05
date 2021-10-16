@@ -6,4 +6,14 @@ class PopulationHex(models.Model):
     population = models.FloatField()
 
     class Meta:
-        db_table = 'density_population_hex'
+        abstract = True
+
+
+class PopulationHexSmall(PopulationHex):
+    class Meta:
+        db_table = 'density_population_hex_small'
+
+
+class PopulationHexBig(PopulationHex):
+    class Meta:
+        db_table = 'density_population_hex_big'
