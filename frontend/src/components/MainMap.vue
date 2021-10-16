@@ -1,16 +1,25 @@
 <template>
   <l-map style="height: 100%; position: relative; z-index: 1" :zoom="zoom" :center="center">
     <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
+    <div v-for="item in facilities" :key="item.id">
+      <l-marker :lat-lng="item.placement.coordinates"/>
+    </div>
   </l-map>
 </template>
 
 <script>
-import {LMap, LTileLayer} from 'vue2-leaflet';
+  import {LMap, LTileLayer, LMarker} from 'vue2-leaflet';
 
 export default {
   components: {
     LMap,
     LTileLayer,
+    LMarker
+  },
+  computed: {
+    facilities() {
+      return this.$store.getters.facilities;
+    }
   },
   data () {
     return {

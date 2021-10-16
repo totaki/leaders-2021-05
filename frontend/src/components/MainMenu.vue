@@ -25,14 +25,14 @@
         >
           <v-list-item>
             <v-list-item-content>
-              <v-select
+              <v-autocomplete
                 :items="departments"
                 v-on:change="setDepartment"
                 item-text="name"
                 item-value="id"
                 label="Select"
                 outlined
-              ></v-select>
+              ></v-autocomplete>
             </v-list-item-content>
           </v-list-item>
           <div v-for="item in facilities" :key="item.id">
