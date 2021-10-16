@@ -11,7 +11,7 @@
         v-for="poly in hexes"
         :lat-lngs="poly.polygon.coordinates[0]"
         :key="poly.id"
-        fillColor="green"
+        fillColor="red"
         :fillOpacity="getOpacity(poly.population)"
         :interactive="false"
         :weight="0">
