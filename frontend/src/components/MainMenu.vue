@@ -38,7 +38,7 @@
           <div v-for="item in facilities" :key="item.id">
             <v-list-item>
               <v-list-item-content>
-                    <a href="#">{{ item.name }}</a>
+                    <a href="#" @click="()=> setFacility(item)">{{ item.name }}</a>
               </v-list-item-content>
             </v-list-item>
           </div>
@@ -70,6 +70,9 @@ export default {
   methods: {
     setDepartment (department) {
       this.$store.dispatch("getFacilities", { department })
+    },
+    setFacility (facility) {
+      this.$store.dispatch("getSelectedFacility", { facility })
     }
   }
 }
