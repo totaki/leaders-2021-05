@@ -70,6 +70,7 @@ export default {
   methods: {
     setDepartment (department) {
       this.$store.dispatch("getFacilities", { department })
+      this.$store.dispatch("getSelectedFacility", {  })
     },
     setFacility (facility) {
       this.$store.dispatch("getSelectedFacility", { facility })
