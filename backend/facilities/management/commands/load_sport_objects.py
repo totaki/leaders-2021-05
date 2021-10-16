@@ -62,7 +62,7 @@ def load_facilities():
                     name=row[1],
                     department_id=parse_float(row[2]),
                     availability=row[3],
-                    placement=Point(x=float(row[5]), y=float(row[4]))
+                    placement=Point(x=float(row[4]), y=float(row[5]))
                 )
             )
         Facility.objects.bulk_create(facilities)
