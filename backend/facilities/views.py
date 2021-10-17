@@ -1,3 +1,4 @@
+from django.contrib.postgres.aggregates import ArrayAgg
 from django_filters import rest_framework as filters
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
@@ -43,6 +44,11 @@ class FacilitiesViewSet(ReadOnlyModelViewSet):
         )
         serializer = FacilityDetailSerializer(facility)
         return Response(serializer.data)
+
+    def get_queryset(self):
+        if self.action == 'list':
+            return self.queryset.annotate(area_types=ArrayAgg('areas__type', distinct=True))
+        return super(FacilitiesViewSet, self).get_queryset()
 
 
 class SportTypesViewSet(ReadOnlyModelViewSet):
