@@ -69,7 +69,7 @@ export default {
   },
   methods: {
     setDepartment (department) {
-      this.$store.dispatch("getFacilities", { department })
+      this.$store.commit("SET_FACILITY_FILTER", {department})
       this.$store.dispatch("getSelectedFacility", {  })
     },
     setFacility (facility) {

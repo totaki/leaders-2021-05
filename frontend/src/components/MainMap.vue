@@ -1,8 +1,10 @@
 <template>
   <l-map
     style="height: 100%; position: relative; z-index: 1"
-    :zoom="zoom"
+    :zoom="startZoom"
     :center="center"
+    @update:bounds="update"
+    @update:zoom="onZoom"
   >
     <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
     <template v-for="item in facilities">
@@ -12,7 +14,7 @@
           :lat-lng="item.placement.coordinates"
           :radius="getRadius(item.availability)"
           :fillColor="isSquareCircleGreen(item.square) ? 'green': 'red'"
-          :weight="1"
+          :weight="0"
           :color="isSquareCircleGreen(item.square) ? 'green': 'red'"
           :opacity="0.45"
           :fillOpacity="getSquareCircleOpacity(item.square)"
@@ -44,11 +46,28 @@ export default {
     selectedFacility() {
       return this.$store.getters.selectedFacility;
     },
+    facilityFilter() {
+      return this.$store.getters.facilityFilter;
+    },
+    maxOpacityPerFacility() {
+      if (this.$store.getters.facilities.length > 1000) return 0.07;
+      if (this.$store.getters.facilities.length > 500) return 0.12;
+      return 0.4
+    }
   },
   watch: {
     selectedFacility(newVal) {
       if (!newVal) return;
       this.center = newVal.placement.coordinates;
+    },
+    facilityFilter(newVal) {
+      this.$store.dispatch(
+        "getFacilitiesByTiles",
+        {
+          tiles: this.bbox2tiles(this.boundsToBbox(this.bounds), this.getZoomForTiles()),
+          facilityFilter: newVal
+        }
+      )
     },
   },
   data () {
@@ -56,6 +75,7 @@ export default {
       url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       attribution:
         '&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+      startZoom: 14,
       zoom: 14,
       center: [55.751244, 37.618423],
       icon: L.icon({
@@ -67,7 +87,8 @@ export default {
       ],
       greenSquareWeights: [
         686.5, 1092.0, 1720.0, 2734.8, 4956.0, 5000000.0
-      ]
+      ],
+      zoomBorder: 14
     };
   },
   methods: {
@@ -91,11 +112,48 @@ export default {
           if (square < weight) break;
         }
       }
-      if (opacity <= 0.01) console.log(`square ${square}`)
-      return opacity * 0.4
+      return opacity * this.maxOpacityPerFacility
     },
     isSquareCircleGreen: function (square) {
       return square > this.greenSquareWeights[0]
+    },
+    update: function (bounds) {
+      this.bounds = bounds;
+      this.$store.dispatch(
+          "getFacilitiesByTiles",
+          {
+            tiles: this.bbox2tiles(this.boundsToBbox(bounds), this.getZoomForTiles()),
+            facilityFilter: this.$store.getters.facilityFilter
+          }
+      )
+    },
+    onZoom: function (zoom) {
+      this.zoom = zoom
+    },
+    boundsToBbox: function (bounds) {
+      return [bounds._southWest.lat, bounds._southWest.lng, bounds._northEast.lat, bounds._northEast.lng]
+    },
+    lon2tile: function (lon, zoom) {
+      return (Math.floor((lon + 180) / 360 * Math.pow(2, zoom)));
+    },
+    lat2tile: function (lat, zoom) {
+      return (Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom)));
+    },
+    bbox2tiles: function (bbox, zoom) {
+      const y1 = this.lat2tile(bbox[1], zoom);
+      const x1 = this.lon2tile(bbox[0], zoom);
+      const y2 = this.lat2tile(bbox[3], zoom);
+      const x2 = this.lon2tile(bbox[2], zoom);
+      let tiles = []
+      for (let i = Math.min(y1, y2); i <= Math.max(y1, y2); i++) {
+        for (let j = Math.min(x1, x2); j <= Math.max(x1, x2); j++) {
+          tiles.push([j, i, zoom])
+        }
+      }
+      return tiles
+    },
+    getZoomForTiles() {
+      return this.zoom > 13? 13: 11
     }
   }
 }
