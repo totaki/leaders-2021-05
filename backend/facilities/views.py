@@ -1,9 +1,10 @@
-from django_filters.rest_framework import DjangoFilterBackend
+from django_filters import rest_framework as filters
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from facilities.filters import FacilityFilter
 from facilities.models import (
     Department,
     Facility,
@@ -29,8 +30,8 @@ class DepartmentsViewSet(ReadOnlyModelViewSet):
 class FacilitiesViewSet(ReadOnlyModelViewSet):
     queryset = Facility.objects.all()
     serializer_class = FacilitySerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["department", "availability"]
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = FacilityFilter
     pagination_class = LimitOffsetPagination
 
     @action(detail=True)
@@ -57,6 +58,6 @@ class SportsAreaTypesViewSet(ReadOnlyModelViewSet):
 class SportsAreasViewSet(ReadOnlyModelViewSet):
     queryset = SportsArea.objects.all()
     serializer_class = SportsAreaSerializer
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ["facility", "type"]
     pagination_class = LimitOffsetPagination
