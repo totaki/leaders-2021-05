@@ -60,7 +60,7 @@ def load_facilities():
                 Facility(
                     id=row[0],
                     name=row[1],
-                    department_id=parse_float(row[2]),
+                    department_id=int(row[2]),
                     availability=row[3],
                     placement=Point(x=float(row[4]), y=float(row[5]))
                 )
