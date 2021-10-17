@@ -1,4 +1,5 @@
 from django.contrib.postgres.aggregates import ArrayAgg
+from django.db.models import Sum
 from django_filters import rest_framework as filters
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
@@ -29,7 +30,11 @@ class DepartmentsViewSet(ReadOnlyModelViewSet):
 
 
 class FacilitiesViewSet(ReadOnlyModelViewSet):
-    queryset = Facility.objects.all()
+    queryset = (
+        Facility.objects.prefetch_related("areas")
+        .annotate(square=Sum("areas__square"))
+        .all()
+    )
     serializer_class = FacilitySerializer
     filter_backends = [filters.DjangoFilterBackend]
     filterset_class = FacilityFilter
@@ -37,17 +42,15 @@ class FacilitiesViewSet(ReadOnlyModelViewSet):
 
     @action(detail=True)
     def report(self, request, pk=None):
-        facility = (
-            self.queryset.prefetch_related("areas")
-            .select_related("department")
-            .get(pk=pk)
-        )
+        facility = self.queryset.select_related("department").get(pk=pk)
         serializer = FacilityDetailSerializer(facility)
         return Response(serializer.data)
 
     def get_queryset(self):
-        if self.action == 'list':
-            return self.queryset.annotate(area_types=ArrayAgg('areas__type', distinct=True))
+        if self.action == "list":
+            return self.queryset.annotate(
+                area_types=ArrayAgg("areas__type", distinct=True)
+            )
         return super(FacilitiesViewSet, self).get_queryset()
 
 
