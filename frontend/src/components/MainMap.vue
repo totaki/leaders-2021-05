@@ -6,7 +6,7 @@
   >
     <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
     <div v-for="item in facilities" :key="item.id">
-      <l-marker v-if="item != selectedFacility" :lat-lng="item.placement.coordinates" />
+      <l-marker v-if="!selectedFacility || item.id !== selectedFacility.id" :lat-lng="item.placement.coordinates" />
     </div>
     <l-marker v-if="selectedFacility" :lat-lng="selectedFacility.placement.coordinates" :icon="icon"/>
   </l-map>
@@ -32,6 +32,7 @@ export default {
   },
   watch: {
     selectedFacility(newVal) {
+      if (!newVal) return;
       this.center = newVal.placement.coordinates;
     },
   },
