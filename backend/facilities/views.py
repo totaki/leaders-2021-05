@@ -41,7 +41,7 @@ class FacilitiesViewSet(ReadOnlyModelViewSet):
     serializer_class = FacilitySerializer
     filter_backends = [filters.DjangoFilterBackend, TMSTileFilter]
     filterset_class = FacilityFilter
-    bbox_filter_include_overlapping = True
+    # bbox_filter_include_overlapping = True
     bbox_filter_field = 'placement'
     pagination_class = LimitOffsetPagination
 

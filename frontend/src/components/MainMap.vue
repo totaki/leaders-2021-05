@@ -7,20 +7,23 @@
     @update:zoom="onZoom"
   >
     <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
-    <template v-for="item in facilities">
-      <l-marker v-if="!selectedFacility || item.id !== selectedFacility.id" :lat-lng="item.placement.coordinates" :key="item.id" />
-      <l-circle
-          :key="'c' + item.id"
-          :lat-lng="item.placement.coordinates"
-          :radius="getRadius(item.availability)"
-          :fillColor="isSquareCircleGreen(item.square) ? 'green': 'red'"
-          :weight="0"
-          :color="isSquareCircleGreen(item.square) ? 'green': 'red'"
-          :opacity="0.45"
-          :fillOpacity="getSquareCircleOpacity(item.square)"
-          :interactive="false"
-      />
-    </template>
+    <v-marker-cluster :options="{chunkedLoading: true, disableClusteringAtZoom: 14}">
+      <template v-for="item in facilities">
+        <l-marker v-if="!selectedFacility || item.id !== selectedFacility.id" :lat-lng="item.placement.coordinates" :key="item.id" />
+      </template>
+    </v-marker-cluster>
+    <l-circle
+        v-for="item in facilities"
+        :key="'c' + item.id"
+        :lat-lng="item.placement.coordinates"
+        :radius="getRadius(item.availability)"
+        :fillColor="isSquareCircleGreen(item.square) ? 'green': 'red'"
+        :weight="0"
+        :color="isSquareCircleGreen(item.square) ? 'green': 'red'"
+        :opacity="0.45"
+        :fillOpacity="getSquareCircleOpacity(item.square)"
+        :interactive="false"
+    />
     <l-marker v-if="selectedFacility" :lat-lng="selectedFacility.placement.coordinates" :icon="icon"/>
 
 
@@ -31,6 +34,7 @@
 import {LMap, LTileLayer, LMarker, LCircle} from 'vue2-leaflet';
 import L from "leaflet";
 import icon from "../icon.png";
+import Vue2LeafletMarkerCluster from "vue2-leaflet-markercluster";
 
 export default {
   components: {
@@ -38,6 +42,7 @@ export default {
     LTileLayer,
     LMarker,
     LCircle,
+    "v-marker-cluster": Vue2LeafletMarkerCluster
   },
   computed: {
     facilities() {
@@ -52,7 +57,7 @@ export default {
     maxOpacityPerFacility() {
       if (this.$store.getters.facilities.length > 1000) return 0.07;
       if (this.$store.getters.facilities.length > 500) return 0.12;
-      return 0.4
+      return 0.3
     }
   },
   watch: {
@@ -153,7 +158,7 @@ export default {
       return tiles
     },
     getZoomForTiles() {
-      return this.zoom > 13? 13: 11
+      return this.zoom > 13? 13: 12
     }
   }
 }
@@ -161,6 +166,9 @@ export default {
 
 <style >
 @import "~leaflet/dist/leaflet.css";
+@import "~leaflet.markercluster/dist/MarkerCluster.css";
+@import "~leaflet.markercluster/dist/MarkerCluster.Default.css";
+
 .selected {
   filter: hue-rotate(265deg);
   margin-left: -12px;
