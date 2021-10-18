@@ -33,6 +33,36 @@
           </v-list-item>
           <v-list-item>
             <v-list-item-content>
+              <v-text-field
+                label="Area name"
+                @input="(val) => filter.area_name = val"
+              ></v-text-field>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item>
+            <v-list-item-content>
+              <v-autocomplete
+                label="Area type"
+                :items="areaTypes"
+                item-text="name"
+                item-value="id"
+                @change="(val) => filter.area_name = val"
+              ></v-autocomplete>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item>
+            <v-list-item-content>
+              <v-autocomplete
+                label="Availability"
+                :items="availability"
+                item-text="name"
+                item-value="id"
+                @change="(val) => filter.availability = val"
+              ></v-autocomplete>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item>
+            <v-list-item-content>
               <v-autocomplete
                 :items="departments"
                 v-on:change="(val) => filter.department = val"
@@ -70,6 +100,9 @@ export default {
     departments() {
       return this.$store.getters.departments;
     },
+    areaTypes() {
+      return this.$store.getters.areaTypes;
+    },
     facilities() {
       console.log(this.$store.getters.facilities)
       return this.$store.getters.facilities;
@@ -78,6 +111,12 @@ export default {
   data () {
       return {
         right: null,
+        availability: [
+          {id: 1, name: "Шаговая доступность"},
+          {id: 2, name: "Районная доступность"},
+          {id: 3, name: "Окружная доступность"},
+          {id: 4, name: "Городского значения"},
+          ],
         filter: {},
       }
   },

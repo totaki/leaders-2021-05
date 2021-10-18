@@ -27,8 +27,11 @@ const getFacilities = (params) => {
 
 const getFacilitiesByTile = (zoom, x, y) => api.get(`/facilities?tile=${zoom}/${x}/${y}&limit=1500`)
 
+const getAreaTypes = () => api.get(`/sport-types`)
+
 export default {
   getDepartments,
   getFacilities,
   getFacilitiesByTile,
+  getAreaTypes,
 }

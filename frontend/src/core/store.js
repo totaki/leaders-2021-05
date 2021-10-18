@@ -8,6 +8,7 @@ Vue.use(Vuex)
 const state = {
   departments: [],
   facilities: [],
+  areaTypes: [],
   selectedFacility: null,
   facilityFilter: {department: null}
 }
@@ -15,6 +16,7 @@ const state = {
 const getters = {
   departments: state => state.departments,
   facilities: state => state.facilities,
+  areaTypes: state => state.areaTypes,
   selectedFacility: state => state.selectedFacility,
   facilityFilter: state => state.facilityFilter,
 }
@@ -24,6 +26,12 @@ const actions = {
     api.getDepartments()
       .then(r => {
         commit("SET_DEPARTMENTS", r.data)
+      })
+  },
+  getAreaTypes: ({commit}) => {
+    api.getAreaTypes()
+      .then(r => {
+        commit("SET_AREA_TYPES", r.data)
       })
   },
   getFacilities: ({commit}, {facilityFilter}) => {
@@ -62,6 +70,9 @@ const mutations = {
   },
   SET_FACILITIES: (state, items) => {
     state.facilities = items
+  },
+  SET_AREA_TYPES: (state, items) => {
+    state.areaTypes = items
   },
   SET_SELECTED_FACILITY: (state, item) => {
     state.selectedFacility = item
