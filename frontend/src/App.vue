@@ -17,6 +17,7 @@ export default {
   },
   async mounted() {
     this.$store.dispatch("getDepartments")
+    this.$store.dispatch("getAreaTypes")
   }
 }
 </script>
