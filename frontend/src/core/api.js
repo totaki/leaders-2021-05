@@ -12,7 +12,7 @@ function serialize(obj) {
         for (const val of obj[p]) {
           str.push(encodeURIComponent(p) + "=" + encodeURIComponent(val));
         }
-      } else if (obj[p]) {
+      } else if (obj[p] || obj[p] == 0) {
         str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
       }
     }
