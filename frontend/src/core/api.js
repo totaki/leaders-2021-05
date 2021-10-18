@@ -29,6 +29,7 @@ const getFacilitiesByTile = (zoom, x, y) => api.get(`/facilities?tile=${zoom}/${
 
 const getAreaTypes = () => api.get(`/sport-area-types`)
 const getSportTypes = () => api.get(`/sport-types`)
+const getFacilityReport = (id) => api.get(`/facilities/${id}/report`)
 
 export default {
   getDepartments,
@@ -36,4 +37,5 @@ export default {
   getFacilitiesByTile,
   getAreaTypes,
   getSportTypes,
+  getFacilityReport,
 }

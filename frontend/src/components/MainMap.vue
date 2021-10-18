@@ -9,7 +9,25 @@
     <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
     <v-marker-cluster :options="{chunkedLoading: true, disableClusteringAtZoom: 14}">
       <template v-for="item in facilities">
-        <l-marker v-if="!selectedFacility || item.id !== selectedFacility.id" :lat-lng="item.placement.coordinates" :key="item.id" />
+        <l-marker v-if="!selectedFacility || item.id !== selectedFacility.id" :lat-lng="item.placement.coordinates" :key="item.id" @click="()=>getFacilityReport(item.id)" >
+          <l-popup>
+              <p>Name: {{facilityReport.name}} </p>
+                <p>Availability: {{getAvailabilityNameById(facilityReport.availability).name}} </p>
+                <p>Department: {{facilityReport.department.name}} </p>
+               <p>Sports areas: </p>
+               <div v-for="area in facilityReport.areas" :key="area.id">
+                  <div class='text-body-2'>
+                   &emsp; Name: {{area.name}} 
+                  </div>
+                  <div class='text-body-2'>
+                    &emsp;&emsp; Sports: {{getSportsNameById(area.sports)}} 
+                  </div>
+                  <div class='text-body-2'>
+                    &emsp;&emsp; Type: {{getAreaTypeById(area.type).name}}                     
+                  </div>
+                </div>            
+          </l-popup>
+        </l-marker>
       </template>
     </v-marker-cluster>
     <l-circle
@@ -24,14 +42,15 @@
         :fillOpacity="getSquareCircleOpacity(item.square)"
         :interactive="false"
     />
-    <l-marker v-if="selectedFacility" :lat-lng="selectedFacility.placement.coordinates" :icon="icon"/>
+    <l-marker v-if="selectedFacility" :lat-lng="selectedFacility.placement.coordinates" :icon="icon">
+    </l-marker>
 
 
   </l-map>
 </template>
 
 <script>
-import {LMap, LTileLayer, LMarker, LCircle} from 'vue2-leaflet';
+import {LMap, LTileLayer, LMarker, LCircle, LPopup} from 'vue2-leaflet';
 import L from "leaflet";
 import icon from "../icon.png";
 import Vue2LeafletMarkerCluster from "vue2-leaflet-markercluster";
@@ -42,6 +61,7 @@ export default {
     LTileLayer,
     LMarker,
     LCircle,
+    LPopup,
     "v-marker-cluster": Vue2LeafletMarkerCluster
   },
   computed: {
@@ -53,6 +73,9 @@ export default {
     },
     facilityFilter() {
       return this.$store.getters.facilityFilter;
+    },
+    facilityReport() {
+      return this.$store.getters.facilityReport;
     },
     maxOpacityPerFacility() {
       if (this.$store.getters.facilities.length > 1000) return 0.07;
@@ -85,6 +108,7 @@ export default {
       center: [55.751244, 37.618423],
       icon: L.icon({
         iconUrl: icon,
+        popupAnchor: [1,-35],
         className: "selected",
       }),
       redSquareWeights: [
@@ -159,7 +183,23 @@ export default {
     },
     getZoomForTiles() {
       return this.zoom > 13? 13: 12
-    }
+    },
+    getFacilityReport(id) {
+      this.$store.dispatch("getFacilityReport",{ id })
+    },
+    getAvailabilityNameById(id) {
+      return this.$store.getters.availabilities.find( item => item.id === id)
+    },
+    getSportsNameById(ids) {
+      let res = "";
+      ids.forEach( id => {
+        res += this.$store.getters.sportTypes.find((sport) => sport.id == id).name + " "
+      })
+      return res
+    },
+    getAreaTypeById(id) {
+      return this.$store.getters.areaTypes.find( item => item.id === id)
+    },
   }
 }
 </script>
@@ -172,7 +212,6 @@ export default {
 .selected {
   filter: hue-rotate(265deg);
   margin-left: -12px;
-    margin-top: -41px;
-    z-index: 394 !important;
+  margin-top: -41px;
 }
 </style>

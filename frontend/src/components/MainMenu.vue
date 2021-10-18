@@ -65,7 +65,7 @@
             <v-list-item-content>
               <v-autocomplete
                 label="Availability"
-                :items="availability"
+                :items="availabilities"
                 item-text="name"
                 item-value="id"
                 @change="(val) => filter.availability = val"
@@ -117,6 +117,9 @@ export default {
     sportTypes() {
       return this.$store.getters.sportTypes;
     },
+    availabilities() {
+      return this.$store.getters.availabilities;
+    },
     facilities() {
       console.log(this.$store.getters.facilities)
       return this.$store.getters.facilities;
@@ -125,12 +128,7 @@ export default {
   data () {
       return {
         right: null,
-        availability: [
-          {id: 1, name: "Шаговая доступность"},
-          {id: 2, name: "Районная доступность"},
-          {id: 3, name: "Окружная доступность"},
-          {id: 4, name: "Городского значения"},
-          ],
+  
         filter: {},
       }
   },

@@ -10,8 +10,34 @@ const state = {
   facilities: [],
   areaTypes: [],
   sportTypes: [],
+  availabilities: [
+    {id: 1, name: "Шаговая доступность"},
+    {id: 2, name: "Районная доступность"},
+    {id: 3, name: "Окружная доступность"},
+    {id: 4, name: "Городского значения"},
+  ],
   selectedFacility: null,
-  facilityFilter: {department: null}
+  facilityFilter: {department: null},
+  facilityReport: {
+    name: "",
+    availability: 1,
+    areas: [
+      {
+        id: 0,
+        name: "",
+        sports: [
+          0
+        ],
+        square: 0,
+        facility: 0,
+        type: 0
+      },
+    ],
+    department: {
+      id: 0,
+      name: ""
+    }
+  }
 }
 
 const getters = {
@@ -19,8 +45,10 @@ const getters = {
   facilities: state => state.facilities,
   areaTypes: state => state.areaTypes,
   sportTypes: state => state.sportTypes,
+  availabilities: state => state.availabilities,
   selectedFacility: state => state.selectedFacility,
   facilityFilter: state => state.facilityFilter,
+  facilityReport: state => state.facilityReport,
 }
 
 const actions = {
@@ -40,6 +68,12 @@ const actions = {
     api.getSportTypes()
       .then(r => {
         commit("SET_SPORT_TYPES", r.data)
+      })
+  },
+  getFacilityReport: ({commit}, { id }) => {
+    api.getFacilityReport(id)
+      .then(r => {
+        commit("SET_FACILITY_REPORT", r.data)
       })
   },
   getFacilities: ({commit}, {facilityFilter}) => {
@@ -90,6 +124,9 @@ const mutations = {
   },
   SET_FACILITY_FILTER: (state, item) => {
     state.facilityFilter = item
+  },
+  SET_FACILITY_REPORT: (state, item) => {
+    state.facilityReport = item
   },
 }
 
