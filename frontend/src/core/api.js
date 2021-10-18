@@ -21,8 +21,8 @@ function serialize(obj) {
 
 const getDepartments = () => api.get("/departments?format=json")
 
-const getFacilities = (params) => {
-  return api.get(`/facilities?${serialize(params)}`)
+const getFacilities = (params, cancelToken) => {
+  return api.get(`/facilities?${serialize(params)}`, {cancelToken})
 }
 
 const getFacilitiesByTile = (zoom, x, y) => api.get(`/facilities?tile=${zoom}/${x}/${y}&limit=1500`)
