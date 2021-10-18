@@ -42,11 +42,22 @@
           <v-list-item>
             <v-list-item-content>
               <v-autocomplete
+                label="Sport type"
+                :items="sportTypes"
+                item-text="name"
+                item-value="id"
+                @change="(val) => filter.sport_type = val"
+              ></v-autocomplete>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item>
+            <v-list-item-content>
+              <v-autocomplete
                 label="Area type"
                 :items="areaTypes"
                 item-text="name"
                 item-value="id"
-                @change="(val) => filter.area_name = val"
+                @change="(val) => filter.area_type = val"
               ></v-autocomplete>
             </v-list-item-content>
           </v-list-item>
@@ -103,6 +114,9 @@ export default {
     areaTypes() {
       return this.$store.getters.areaTypes;
     },
+    sportTypes() {
+      return this.$store.getters.sportTypes;
+    },
     facilities() {
       console.log(this.$store.getters.facilities)
       return this.$store.getters.facilities;
@@ -122,6 +136,7 @@ export default {
   },
   methods: {
     setFilters (filter) {
+      console.log(filter);
       this.$store.commit("SET_FACILITY_FILTER", {...filter})
     },
     setFacility (facility) {

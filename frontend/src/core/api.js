@@ -1,7 +1,7 @@
 import axios from "axios"
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api/v1',
+  baseURL: process.env.NODE_ENV === "production" ? "/api/v1" : 'http://localhost:8000/api/v1' ,
 });
 
 function serialize(obj) {
@@ -12,7 +12,7 @@ function serialize(obj) {
         for (const val of obj[p]) {
           str.push(encodeURIComponent(p) + "=" + encodeURIComponent(val));
         }
-      } else if (obj[p]) {
+      } else if (obj[p] || obj[p] == 0) {
         str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
       }
     }
@@ -27,11 +27,13 @@ const getFacilities = (params, cancelToken) => {
 
 const getFacilitiesByTile = (zoom, x, y) => api.get(`/facilities?tile=${zoom}/${x}/${y}&limit=1500`)
 
-const getAreaTypes = () => api.get(`/sport-types`)
+const getAreaTypes = () => api.get(`/sport-area-types`)
+const getSportTypes = () => api.get(`/sport-types`)
 
 export default {
   getDepartments,
   getFacilities,
   getFacilitiesByTile,
   getAreaTypes,
+  getSportTypes,
 }

@@ -9,6 +9,7 @@ const state = {
   departments: [],
   facilities: [],
   areaTypes: [],
+  sportTypes: [],
   selectedFacility: null,
   facilityFilter: {department: null},
   facilitiesCancelTokenSource: axios.CancelToken.source()
@@ -18,6 +19,7 @@ const getters = {
   departments: state => state.departments,
   facilities: state => state.facilities,
   areaTypes: state => state.areaTypes,
+  sportTypes: state => state.sportTypes,
   selectedFacility: state => state.selectedFacility,
   facilityFilter: state => state.facilityFilter,
 }
@@ -33,6 +35,12 @@ const actions = {
     api.getAreaTypes()
       .then(r => {
         commit("SET_AREA_TYPES", r.data)
+      })
+  },
+  getSportTypes: ({commit}) => {
+    api.getSportTypes()
+      .then(r => {
+        commit("SET_SPORT_TYPES", r.data)
       })
   },
   getFacilities: ({commit}, {facilityFilter}) => {
@@ -76,6 +84,9 @@ const mutations = {
   },
   SET_AREA_TYPES: (state, items) => {
     state.areaTypes = items
+  },
+  SET_SPORT_TYPES: (state, items) => {
+    state.sportTypes = items
   },
   SET_SELECTED_FACILITY: (state, item) => {
     state.selectedFacility = item
