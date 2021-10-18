@@ -62,7 +62,8 @@ def load_facilities():
                     name=row[1],
                     department_id=int(row[2]),
                     availability=row[3],
-                    placement=Point(x=float(row[4]), y=float(row[5]))
+                    placement=Point(x=float(row[4]), y=float(row[5])),
+                    sports=json.loads(row[6]),
                 )
             )
         Facility.objects.bulk_create(facilities)

@@ -23,6 +23,7 @@ class Facility(models.Model):
     )
     availability = models.PositiveSmallIntegerField(choices=AvailabilityType.choices)
     placement = models.PointField()
+    sports = ArrayField(models.PositiveSmallIntegerField(), size=70)
 
 
 class SportType(models.Model):
