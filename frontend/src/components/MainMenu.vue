@@ -46,7 +46,7 @@
                 :items="sportTypes"
                 item-text="name"
                 item-value="id"
-                @change="(val) => filter.sport_types = val"
+                @change="(val) => filter.sport_type = val"
               ></v-autocomplete>
             </v-list-item-content>
           </v-list-item>
@@ -57,7 +57,7 @@
                 :items="areaTypes"
                 item-text="name"
                 item-value="id"
-                @change="(val) => filter.area_types = val"
+                @change="(val) => filter.area_type = val"
               ></v-autocomplete>
             </v-list-item-content>
           </v-list-item>
@@ -136,6 +136,7 @@ export default {
   },
   methods: {
     setFilters (filter) {
+      console.log(filter);
       this.$store.commit("SET_FACILITY_FILTER", {...filter})
     },
     setFacility (facility) {
