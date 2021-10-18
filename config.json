@@ -1,0 +1,50 @@
+{
+    "listeners": {
+        "*:8000": {
+            "pass": "routes"
+        }
+    },
+
+    "routes": [
+        {
+            "match": {
+                "uri": "/django_static/*"
+            },
+            "action": {
+                "share": "/app/static/"
+            }
+        },
+        {
+            "match": {
+                "uri": "/admin/*"
+            },
+            "action": {
+                "pass": "applications/django"
+            }
+        },
+        {
+            "match": {
+                "uri": "/api/*"
+            },
+            "action": {
+                "pass": "applications/django"
+            }
+        },
+        {
+            "action": {
+                "share": "/app/frontend_build/"
+            }
+        }
+    ],
+
+    "applications": {
+        "django": {
+            "type": "python 3.9",
+            "path": "/app/",
+            "module": "leaders.wsgi",
+            "environment": {
+                "DJANGO_SETTINGS_MODULE": "leaders.settings"
+            }
+        }
+    }
+}
