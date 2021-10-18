@@ -25,14 +25,27 @@
         >
           <v-list-item>
             <v-list-item-content>
+              <v-text-field
+                label="Name sport object"
+                @input="(val) => filter.name = val"
+              ></v-text-field>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item>
+            <v-list-item-content>
               <v-autocomplete
                 :items="departments"
-                v-on:change="setDepartment"
+                v-on:change="(val) => filter.department = val"
                 item-text="name"
                 item-value="id"
                 label="Select"
                 outlined
               ></v-autocomplete>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item>
+            <v-list-item-content>
+              <v-btn @click="() => setFilters(filter)">Apply</v-btn>
             </v-list-item-content>
           </v-list-item>
           <div v-for="item in facilities" :key="item.id">
@@ -65,12 +78,12 @@ export default {
   data () {
       return {
         right: null,
+        filter: {},
       }
   },
   methods: {
-    setDepartment (department) {
-      this.$store.commit("SET_FACILITY_FILTER", {department})
-      this.$store.dispatch("getSelectedFacility", {  })
+    setFilters (filter) {
+      this.$store.commit("SET_FACILITY_FILTER", {...filter})
     },
     setFacility (facility) {
       this.$store.dispatch("getSelectedFacility", { facility })
