@@ -93,19 +93,19 @@ export default {
     },
     facilityFilter(newVal) {
       console.log(newVal);
-      this.$store.dispatch(
-        "getFacilities",
-        {
-          facilityFilter: newVal
-        }
-      )      
       // this.$store.dispatch(
-      //   "getFacilitiesByTiles",
+      //   "getFacilities",
       //   {
-      //     tiles: this.bbox2tiles(this.boundsToBbox(this.bounds), this.getZoomForTiles()),
       //     facilityFilter: newVal
       //   }
       // )
+      this.$store.dispatch(
+        "getFacilitiesByTiles",
+        {
+          tiles: this.bbox2tiles(this.boundsToBbox(this.bounds), this.getZoomForTiles()),
+          facilityFilter: newVal
+        }
+      )
     },
     facilities(fac) {
       var markers = L.markerClusterGroup({ chunkedLoading: true, disableClusteringAtZoom: 14});
@@ -176,13 +176,13 @@ export default {
     },
     update: function (bounds) {
       this.bounds = bounds;
-      // this.$store.dispatch(
-      //     "getFacilitiesByTiles",
-      //     {
-      //       tiles: this.bbox2tiles(this.boundsToBbox(bounds), this.getZoomForTiles()),
-      //       facilityFilter: this.$store.getters.facilityFilter
-      //     }
-      // )
+      this.$store.dispatch(
+          "getFacilitiesByTiles",
+          {
+            tiles: this.bbox2tiles(this.boundsToBbox(bounds), this.getZoomForTiles()),
+            facilityFilter: this.$store.getters.facilityFilter
+          }
+      )
     },
     onZoom: function (zoom) {
       this.zoom = zoom
@@ -221,7 +221,7 @@ export default {
     getSportsNameById(ids) {
       let res = "";
       ids.forEach( id => {
-        res += this.$store.getters.sportTypes.find((sport) => sport.id == id).name + " "
+        res += this.$store.getters.sportTypes.find((sport) => sport.id === id).name + " "
       })
       return res
     },

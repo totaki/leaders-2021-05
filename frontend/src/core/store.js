@@ -38,7 +38,9 @@ const state = {
       name: ""
     }
   },
-  facilitiesCancelTokenSource: axios.CancelToken.source()
+  facilitiesCancelTokenSource: axios.CancelToken.source(),
+  lastTilesList: [],
+  lastFacilityFilter: null,
 }
 
 const getters = {
@@ -87,6 +89,10 @@ const actions = {
     commit("SET_SELECTED_FACILITY", facility)
   },
   getFacilitiesByTiles: async ({commit}, {tiles, facilityFilter}) => {
+    if (JSON.stringify(tiles) === JSON.stringify(state.lastTilesList)) {
+      return;
+    }
+    commit("SET_LAST_TILES", tiles)
     state.facilitiesCancelTokenSource.cancel();
     commit("SET_NEW_FACILITY_CANCEL_TOKEN")
     let requests = tiles.map(([x, y, zoom]) => api.getFacilities({
@@ -133,6 +139,9 @@ const mutations = {
   },
   SET_NEW_FACILITY_CANCEL_TOKEN: (state) => {
     state.facilitiesCancelTokenSource = axios.CancelToken.source()
+  },
+  SET_LAST_TILES: (state, tiles) => {
+    state.lastTilesList = tiles
   },
 }
 
