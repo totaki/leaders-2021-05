@@ -89,7 +89,7 @@
               <v-btn @click="() => setFilters(filter)">Apply</v-btn>
             </v-list-item-content>
           </v-list-item>
-          <div v-for="item in facilities" :key="item.id">
+          <div v-for="item in facilities.slice(0,100)" :key="item.id">
             <v-list-item>
               <v-list-item-content>
                     <a href="#" @click="()=> setFacility(item)">{{ item.name }}</a>

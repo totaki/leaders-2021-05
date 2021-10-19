@@ -1,5 +1,6 @@
 <template>
   <l-map
+    ref="map"
     style="height: 100%; position: relative; z-index: 1"
     :zoom="startZoom"
     :center="center"
@@ -7,7 +8,7 @@
     @update:zoom="onZoom"
   >
     <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
-    <v-marker-cluster :options="{chunkedLoading: true, disableClusteringAtZoom: 14}">
+    <!-- <v-marker-cluster :options="{chunkedLoading: true, disableClusteringAtZoom: 14}">
       <template v-for="item in facilities">
         <l-marker v-if="!selectedFacility || item.id !== selectedFacility.id" :lat-lng="item.placement.coordinates" :key="item.id" @click="()=>getFacilityReport(item.id)" >
           <l-popup>
@@ -29,8 +30,10 @@
           </l-popup>
         </l-marker>
       </template>
-    </v-marker-cluster>
-    <l-circle
+
+    </v-marker-cluster> -->
+    
+    <!-- <l-circle
         v-for="item in facilities"
         :key="'c' + item.id"
         :lat-lng="item.placement.coordinates"
@@ -41,7 +44,7 @@
         :opacity="0.45"
         :fillOpacity="getSquareCircleOpacity(item.square)"
         :interactive="false"
-    />
+    /> -->
     <l-marker v-if="selectedFacility" :lat-lng="selectedFacility.placement.coordinates" :icon="icon">
     </l-marker>
 
@@ -50,19 +53,19 @@
 </template>
 
 <script>
-import {LMap, LTileLayer, LMarker, LCircle, LPopup} from 'vue2-leaflet';
+import {LMap, LTileLayer, LMarker,  } from 'vue2-leaflet';
 import L from "leaflet";
 import icon from "../icon.png";
-import Vue2LeafletMarkerCluster from "vue2-leaflet-markercluster";
-
+// import Vue2LeafletMarkerCluster from "vue2-leaflet-markercluster";
+import "leaflet.markercluster/dist/leaflet.markercluster-src"
 export default {
   components: {
     LMap,
     LTileLayer,
     LMarker,
-    LCircle,
-    LPopup,
-    "v-marker-cluster": Vue2LeafletMarkerCluster
+    // LCircle,
+    // LPopup,
+    // "v-marker-cluster": Vue2LeafletMarkerCluster
   },
   computed: {
     facilities() {
@@ -89,14 +92,37 @@ export default {
       this.center = newVal.placement.coordinates;
     },
     facilityFilter(newVal) {
+      console.log(newVal);
       this.$store.dispatch(
-        "getFacilitiesByTiles",
+        "getFacilities",
         {
-          tiles: this.bbox2tiles(this.boundsToBbox(this.bounds), this.getZoomForTiles()),
           facilityFilter: newVal
         }
-      )
+      )      
+      // this.$store.dispatch(
+      //   "getFacilitiesByTiles",
+      //   {
+      //     tiles: this.bbox2tiles(this.boundsToBbox(this.bounds), this.getZoomForTiles()),
+      //     facilityFilter: newVal
+      //   }
+      // )
     },
+    facilities(fac) {
+      var markers = L.markerClusterGroup({ chunkedLoading: true, disableClusteringAtZoom: 14});
+
+      let marklist = [] 
+      fac.forEach(el => {
+        marklist.push(L.marker(L.latLng(el.placement.coordinates)))   
+      });
+      
+      markers.addLayers(marklist)
+      console.log(this.lastLayer);
+      if (this.lastLayer) {
+        this.$refs.map.mapObject.removeLayer(this.lastLayer)
+      }
+      this.$refs.map.mapObject.addLayer(markers)
+      this.lastLayer = markers
+    }
   },
   data () {
     return {
@@ -117,7 +143,9 @@ export default {
       greenSquareWeights: [
         686.5, 1092.0, 1720.0, 2734.8, 4956.0, 5000000.0
       ],
-      zoomBorder: 14
+      zoomBorder: 14,
+      lastLayer: null,
+      
     };
   },
   methods: {
@@ -148,13 +176,13 @@ export default {
     },
     update: function (bounds) {
       this.bounds = bounds;
-      this.$store.dispatch(
-          "getFacilitiesByTiles",
-          {
-            tiles: this.bbox2tiles(this.boundsToBbox(bounds), this.getZoomForTiles()),
-            facilityFilter: this.$store.getters.facilityFilter
-          }
-      )
+      // this.$store.dispatch(
+      //     "getFacilitiesByTiles",
+      //     {
+      //       tiles: this.bbox2tiles(this.boundsToBbox(bounds), this.getZoomForTiles()),
+      //       facilityFilter: this.$store.getters.facilityFilter
+      //     }
+      // )
     },
     onZoom: function (zoom) {
       this.zoom = zoom
@@ -205,7 +233,11 @@ export default {
 </script>
 
 <style >
-@import "~leaflet/dist/leaflet.css";
+/* @import "~leaflet/dist/leaflet.css"; */
+@import "~leaflet.markercluster/dist/MarkerCluster.css";
+@import "~leaflet.markercluster/dist/MarkerCluster.Default.css";
+@import url("https://unpkg.com/leaflet@1.0.0/dist/leaflet.css");
+/* @import "~leaflet/dist/"; */
 @import "~leaflet.markercluster/dist/MarkerCluster.css";
 @import "~leaflet.markercluster/dist/MarkerCluster.Default.css";
 
