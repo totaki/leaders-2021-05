@@ -39,8 +39,9 @@ const state = {
     }
   },
   facilitiesCancelTokenSource: axios.CancelToken.source(),
-  lastTilesList: [],
+  lastTilesList: new Set(),
   lastFacilityFilter: null,
+  newFacilities: []
 }
 
 const getters = {
@@ -52,6 +53,7 @@ const getters = {
   selectedFacility: state => state.selectedFacility,
   facilityFilter: state => state.facilityFilter,
   facilityReport: state => state.facilityReport,
+  newFacilities: state => state.newFacilities,
 }
 
 const actions = {
@@ -88,27 +90,32 @@ const actions = {
   getSelectedFacility: ({commit}, {facility}) => {
     commit("SET_SELECTED_FACILITY", facility)
   },
+  clearNewFacilitiesBuffer: ({commit}) => {
+    commit("CLEAR_NEW_FACILITIES_BUFFER")
+  },
   getFacilitiesByTiles: async ({commit}, {tiles, facilityFilter}) => {
-    if (JSON.stringify(tiles) === JSON.stringify(state.lastTilesList)) {
+    const newTiles = tiles.filter(item => !state.lastTilesList.has(JSON.stringify(item)))
+    if (!newTiles.length) {
       return;
     }
-    commit("SET_LAST_TILES", tiles)
+    commit("UPDATE_LAST_TILES", newTiles)
+
     state.facilitiesCancelTokenSource.cancel();
     commit("SET_NEW_FACILITY_CANCEL_TOKEN")
-    let requests = tiles.map(([x, y, zoom]) => api.getFacilities({
+    let requests = newTiles.map(([x, y, zoom]) => api.getFacilities({
       tile: `${zoom}/${x}/${y}`,
       availability: [3, 4],
       limit: 150, ...facilityFilter
     }, state.facilitiesCancelTokenSource.token))
-    requests.push(
-      api.getFacilities({availability: [1, 2], limit: 600, ...facilityFilter}, state.facilitiesCancelTokenSource.token),
-    )
+    // requests.push(
+    //   api.getFacilities({availability: [1, 2], limit: 600, ...facilityFilter}, state.facilitiesCancelTokenSource.token),
+    // )
     let facilities = []
     axios.all(requests).then(axios.spread((...responses) => {
       for (const response of responses) {
         facilities.push(...response.data.results)
       }
-      commit("SET_FACILITIES", facilities)
+      commit("SET_NEW_FACILITIES", facilities)
     })).catch(errors => {
       console.log(errors)
     })
@@ -119,8 +126,8 @@ const mutations = {
   SET_DEPARTMENTS: (state, items) => {
     state.departments = items
   },
-  SET_FACILITIES: (state, items) => {
-    state.facilities = items
+  SET_NEW_FACILITIES: (state, items) => {
+    state.newFacilities = items
   },
   SET_AREA_TYPES: (state, items) => {
     state.areaTypes = items
@@ -140,9 +147,14 @@ const mutations = {
   SET_NEW_FACILITY_CANCEL_TOKEN: (state) => {
     state.facilitiesCancelTokenSource = axios.CancelToken.source()
   },
-  SET_LAST_TILES: (state, tiles) => {
-    state.lastTilesList = tiles
+  UPDATE_LAST_TILES: (state, tiles) => {
+    let newList = new Set(state.lastTilesList)
+    tiles.forEach(el => newList.add(JSON.stringify(el)))
+    state.lastTilesList = newList
   },
+  CLEAR_NEW_FACILITIES_BUFFER: (state) => {
+    state.newFacilities = []
+  }
 }
 
 export default new Vuex.Store({

@@ -69,7 +69,7 @@ export default {
   },
   computed: {
     facilities() {
-      return this.$store.getters.facilities;
+      return this.$store.getters.newFacilities;
     },
     selectedFacility() {
       return this.$store.getters.selectedFacility;
@@ -108,24 +108,20 @@ export default {
       )
     },
     facilities(fac) {
-      var markers = L.markerClusterGroup({ chunkedLoading: true, disableClusteringAtZoom: 14});
-
-      let marklist = [] 
+      if (!fac.length) return;
+      let marklist = []
       fac.forEach(el => {
         marklist.push(L.marker(L.latLng(el.placement.coordinates)))   
       });
       
-      markers.addLayers(marklist)
-      console.log(this.lastLayer);
-      if (this.lastLayer) {
-        this.$refs.map.mapObject.removeLayer(this.lastLayer)
-      }
-      this.$refs.map.mapObject.addLayer(markers)
-      this.lastLayer = markers
+      this.markers.addLayers(marklist)
+      this.$refs.map.mapObject.addLayer(this.markers)
+      this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')
     }
   },
   data () {
     return {
+      markers: L.markerClusterGroup({ chunkedLoading: true, disableClusteringAtZoom: 14, removeOutsideVisibleBounds: true}),
       url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       attribution:
         '&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a> contributors',
