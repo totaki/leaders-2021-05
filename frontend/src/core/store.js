@@ -82,7 +82,7 @@ const actions = {
       })
   },
   getFacilities: ({commit}, {facilityFilter}) => {
-    api.getFacilities({limit: 10000,...facilityFilter})
+    api.getFacilities(facilityFilter)
       .then(r => {
         commit("SET_FACILITIES", r.data.results)
       })

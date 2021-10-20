@@ -8,43 +8,6 @@
     @update:zoom="onZoom"
   >
     <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
-    <!-- <v-marker-cluster :options="{chunkedLoading: true, disableClusteringAtZoom: 14}">
-      <template v-for="item in facilities">
-        <l-marker v-if="!selectedFacility || item.id !== selectedFacility.id" :lat-lng="item.placement.coordinates" :key="item.id" @click="()=>getFacilityReport(item.id)" >
-          <l-popup>
-              <p>Name: {{facilityReport.name}} </p>
-                <p>Availability: {{getAvailabilityNameById(facilityReport.availability).name}} </p>
-                <p>Department: {{facilityReport.department.name}} </p>
-               <p>Sports areas: </p>
-               <div v-for="area in facilityReport.areas" :key="area.id">
-                  <div class='text-body-2'>
-                   &emsp; Name: {{area.name}} 
-                  </div>
-                  <div class='text-body-2'>
-                    &emsp;&emsp; Sports: {{getSportsNameById(area.sports)}} 
-                  </div>
-                  <div class='text-body-2'>
-                    &emsp;&emsp; Type: {{getAreaTypeById(area.type).name}}                     
-                  </div>
-                </div>            
-          </l-popup>
-        </l-marker>
-      </template>
-
-    </v-marker-cluster> -->
-    
-    <!-- <l-circle
-        v-for="item in facilities"
-        :key="'c' + item.id"
-        :lat-lng="item.placement.coordinates"
-        :radius="getRadius(item.availability)"
-        :fillColor="isSquareCircleGreen(item.square) ? 'green': 'red'"
-        :weight="0"
-        :color="isSquareCircleGreen(item.square) ? 'green': 'red'"
-        :opacity="0.45"
-        :fillOpacity="getSquareCircleOpacity(item.square)"
-        :interactive="false"
-    /> -->
     <l-marker v-if="selectedFacility" :lat-lng="selectedFacility.placement.coordinates" :icon="icon">
     </l-marker>
 
@@ -56,16 +19,12 @@
 import {LMap, LTileLayer, LMarker,  } from 'vue2-leaflet';
 import L from "leaflet";
 import icon from "../icon.png";
-// import Vue2LeafletMarkerCluster from "vue2-leaflet-markercluster";
 import "leaflet.markercluster/dist/leaflet.markercluster-src"
 export default {
   components: {
     LMap,
     LTileLayer,
     LMarker,
-    // LCircle,
-    // LPopup,
-    // "v-marker-cluster": Vue2LeafletMarkerCluster
   },
   computed: {
     facilities() {
