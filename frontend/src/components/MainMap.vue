@@ -9,7 +9,7 @@
   >
     <l-control-layers position="bottomleft"></l-control-layers>
     <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
-    <l-layer-group :visible='false' name="Плотность спортивных объектов" layer-type="base">
+    <l-layer-group ref="circles" :visible='false' name="Плотность спортивных объектов" layer-type="base">
       <l-circle
           v-for="item in facilities"
           :key="'c' + item.id"
@@ -110,7 +110,7 @@ export default {
       });
 
       this.markers.addLayers(marklist)
-      this.$refs.map.mapObject.addLayer(this.markers)
+      this.$refs.circles.mapObject.addLayer(this.markers)
       this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')
 
     }
