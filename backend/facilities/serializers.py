@@ -1,6 +1,13 @@
+from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from facilities.models import Department, Facility, SportType, SportsAreaType, SportsArea
+from facilities.models import (
+    Department,
+    Facility,
+    SportType,
+    SportsAreaType,
+    SportsArea,
+)
 
 
 class DepartmentSerializer(ModelSerializer):
@@ -10,9 +17,11 @@ class DepartmentSerializer(ModelSerializer):
 
 
 class FacilitySerializer(ModelSerializer):
+    square = serializers.FloatField()
+
     class Meta:
         model = Facility
-        fields = "__all__"
+        fields = ("id", "name", "availability", "placement", "department", "square")
 
 
 class SportTypeSerializer(ModelSerializer):
@@ -32,3 +41,11 @@ class SportsAreaSerializer(ModelSerializer):
         model = SportsArea
         fields = "__all__"
 
+
+class FacilityDetailSerializer(ModelSerializer):
+    areas = SportsAreaSerializer(many=True, read_only=True)
+    department = DepartmentSerializer(read_only=True)
+
+    class Meta:
+        model = Facility
+        fields = ("name", "availability", "areas", "department")

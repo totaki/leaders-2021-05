@@ -23,6 +23,7 @@ class Facility(models.Model):
     )
     availability = models.PositiveSmallIntegerField(choices=AvailabilityType.choices)
     placement = models.PointField()
+    sports = ArrayField(models.PositiveSmallIntegerField(), size=70)
 
 
 class SportType(models.Model):
@@ -41,7 +42,7 @@ class SportsAreaType(models.Model):
 
 class SportsArea(models.Model):
     name = models.CharField(max_length=400)
-    facility = models.ForeignKey(Facility, on_delete=models.CASCADE)
+    facility = models.ForeignKey(Facility, on_delete=models.CASCADE, related_name='areas')
     type = models.ForeignKey(SportsAreaType, on_delete=models.CASCADE)
     sports = ArrayField(models.PositiveSmallIntegerField(), size=20)
     square = models.FloatField(null=True)

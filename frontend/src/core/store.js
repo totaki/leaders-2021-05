@@ -10,6 +10,37 @@ const state = {
   facilities: [],
   big_hexes: localStorage.big_hexes ? JSON.parse(localStorage.big_hexes): [],
   small_hexes: localStorage.initial_small_hexes ? JSON.parse(localStorage.initial_small_hexes): [],
+  areaTypes: [],
+  sportTypes: [],
+  availabilities: [
+    {id: 1, name: "Шаговая доступность"},
+    {id: 2, name: "Районная доступность"},
+    {id: 3, name: "Окружная доступность"},
+    {id: 4, name: "Городского значения"},
+  ],
+  selectedFacility: null,
+  facilityFilter: {department: null},
+  facilityReport: {
+    name: "",
+    availability: 1,
+    areas: [
+      {
+        id: 0,
+        name: "",
+        sports: [
+          0
+        ],
+        square: 0,
+        facility: 0,
+        type: 0
+      },
+    ],
+    department: {
+      id: 0,
+      name: ""
+    }
+  },
+  facilitiesCancelTokenSource: axios.CancelToken.source()
 }
 
 const getters = {
@@ -17,17 +48,41 @@ const getters = {
   facilities: state => state.facilities,
   big_hexes: state => state.big_hexes,
   small_hexes: state => state.small_hexes
+  areaTypes: state => state.areaTypes,
+  sportTypes: state => state.sportTypes,
+  availabilities: state => state.availabilities,
+  selectedFacility: state => state.selectedFacility,
+  facilityFilter: state => state.facilityFilter,
+  facilityReport: state => state.facilityReport,
 }
 
 const actions = {
-  getDepartments: ({ commit }) => {
+  getDepartments: ({commit}) => {
     api.getDepartments()
       .then(r => {
         commit("SET_DEPARTMENTS", r.data)
       })
   },
-  getFacilities: ({ commit }, { department }) => {
-    api.getFacilities(department)
+  getAreaTypes: ({commit}) => {
+    api.getAreaTypes()
+      .then(r => {
+        commit("SET_AREA_TYPES", r.data)
+      })
+  },
+  getSportTypes: ({commit}) => {
+    api.getSportTypes()
+      .then(r => {
+        commit("SET_SPORT_TYPES", r.data)
+      })
+  },
+  getFacilityReport: ({commit}, { id }) => {
+    api.getFacilityReport(id)
+      .then(r => {
+        commit("SET_FACILITY_REPORT", r.data)
+      })
+  },
+  getFacilities: ({commit}, {facilityFilter}) => {
+    api.getFacilities(...facilityFilter)
       .then(r => {
         commit("SET_FACILITIES", r.data.results)
       })
@@ -49,6 +104,30 @@ const actions = {
     })).catch(errors => {
       console.log(errors)
     })
+  },
+  getSelectedFacility: ({commit}, {facility}) => {
+    commit("SET_SELECTED_FACILITY", facility)
+  },
+  getFacilitiesByTiles: async ({commit}, {tiles, facilityFilter}) => {
+    state.facilitiesCancelTokenSource.cancel();
+    commit("SET_NEW_FACILITY_CANCEL_TOKEN")
+    let requests = tiles.map(([x, y, zoom]) => api.getFacilities({
+      tile: `${zoom}/${x}/${y}`,
+      availability: [3, 4],
+      limit: 150, ...facilityFilter
+    }, state.facilitiesCancelTokenSource.token))
+    requests.push(
+      api.getFacilities({availability: [1, 2], limit: 600, ...facilityFilter}, state.facilitiesCancelTokenSource.token),
+    )
+    let facilities = []
+    axios.all(requests).then(axios.spread((...responses) => {
+      for (const response of responses) {
+        facilities.push(...response.data.results)
+      }
+      commit("SET_FACILITIES", facilities)
+    })).catch(errors => {
+      console.log(errors)
+    })
   }
 }
 
@@ -62,12 +141,30 @@ const mutations = {
   SET_SMALL_HEXES: (state, items) => {
     if (!state.small_hexes.length) localStorage.setItem('initial_small_hexes', JSON.stringify(items))
     state.small_hexes = items
-  }
+  },
+  SET_AREA_TYPES: (state, items) => {
+    state.areaTypes = items
+  },
+  SET_SPORT_TYPES: (state, items) => {
+    state.sportTypes = items
+  },
+  SET_SELECTED_FACILITY: (state, item) => {
+    state.selectedFacility = item
+  },
+  SET_FACILITY_FILTER: (state, item) => {
+    state.facilityFilter = item
+  },
+  SET_FACILITY_REPORT: (state, item) => {
+    state.facilityReport = item
+  },
+  SET_NEW_FACILITY_CANCEL_TOKEN: (state) => {
+    state.facilitiesCancelTokenSource = axios.CancelToken.source()
+  },
 }
 
 export default new Vuex.Store({
-    state,
-    getters,
-    actions,
-    mutations
+  state,
+  getters,
+  actions,
+  mutations
 })

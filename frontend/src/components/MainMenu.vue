@@ -25,20 +25,74 @@
         >
           <v-list-item>
             <v-list-item-content>
-              <v-select
+              <v-text-field
+                label="Name sport object"
+                @input="(val) => filter.name = val"
+              ></v-text-field>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item>
+            <v-list-item-content>
+              <v-text-field
+                label="Area name"
+                @input="(val) => filter.area_name = val"
+              ></v-text-field>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item>
+            <v-list-item-content>
+              <v-autocomplete
+                label="Sport type"
+                :items="sportTypes"
+                item-text="name"
+                item-value="id"
+                @change="(val) => filter.sport_type = val"
+              ></v-autocomplete>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item>
+            <v-list-item-content>
+              <v-autocomplete
+                label="Area type"
+                :items="areaTypes"
+                item-text="name"
+                item-value="id"
+                @change="(val) => filter.area_type = val"
+              ></v-autocomplete>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item>
+            <v-list-item-content>
+              <v-autocomplete
+                label="Availability"
+                :items="availabilities"
+                item-text="name"
+                item-value="id"
+                @change="(val) => filter.availability = val"
+              ></v-autocomplete>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item>
+            <v-list-item-content>
+              <v-autocomplete
                 :items="departments"
-                v-on:change="setDepartment"
+                v-on:change="(val) => filter.department = val"
                 item-text="name"
                 item-value="id"
                 label="Select"
                 outlined
-              ></v-select>
+              ></v-autocomplete>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item>
+            <v-list-item-content>
+              <v-btn @click="() => setFilters(filter)">Apply</v-btn>
             </v-list-item-content>
           </v-list-item>
           <div v-for="item in facilities" :key="item.id">
             <v-list-item>
               <v-list-item-content>
-                    <a href="#">{{ item.name }}</a>
+                    <a href="#" @click="()=> setFacility(item)">{{ item.name }}</a>
               </v-list-item-content>
             </v-list-item>
           </div>
@@ -57,6 +111,15 @@ export default {
     departments() {
       return this.$store.getters.departments;
     },
+    areaTypes() {
+      return this.$store.getters.areaTypes;
+    },
+    sportTypes() {
+      return this.$store.getters.sportTypes;
+    },
+    availabilities() {
+      return this.$store.getters.availabilities;
+    },
     facilities() {
       console.log(this.$store.getters.facilities)
       return this.$store.getters.facilities;
@@ -65,11 +128,17 @@ export default {
   data () {
       return {
         right: null,
+  
+        filter: {},
       }
   },
   methods: {
-    setDepartment (department) {
-      this.$store.dispatch("getFacilities", { department })
+    setFilters (filter) {
+      console.log(filter);
+      this.$store.commit("SET_FACILITY_FILTER", {...filter})
+    },
+    setFacility (facility) {
+      this.$store.dispatch("getSelectedFacility", { facility })
     }
   }
 }
