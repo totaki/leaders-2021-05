@@ -1,5 +1,6 @@
 <template>
   <l-map
+    ref="map"
     style="height: 100%; position: relative; z-index: 1"
     :zoom="startZoom"
     :center="center"
@@ -59,16 +60,14 @@
 </template>
 
 <script>
-import {LMap, LPolygon, LTileLayer, LMarker, LCircle, LPopup} from 'vue2-leaflet';
+import {LMap, LTileLayer, LMarker, LCircle, LPopup} from 'vue2-leaflet';
 import L from "leaflet";
 import icon from "../icon.png";
-import Vue2LeafletMarkerCluster from "vue2-leaflet-markercluster";
-
+import "leaflet.markercluster/dist/leaflet.markercluster-src"
 export default {
   components: {
     LMap,
     LTileLayer,
-    LPolygon,
     LMarker,
     LCircle,
     LPopup,
@@ -76,7 +75,7 @@ export default {
   },
   computed: {
     facilities() {
-      return this.$store.getters.facilities;
+      return this.$store.getters.newFacilities;
     },
     selectedFacility() {
       return this.$store.getters.selectedFacility;
@@ -110,10 +109,32 @@ export default {
           facilityFilter: newVal
         }
       )
+      this.$refs.map.mapObject.eachLayer( layer => {
+        console.log(typeof layer.getAttribution);
+        if (typeof layer.getAttribution === 'function' && layer.getAttribution() === this.attribution) {
+            return
+        }
+        this.$refs.map.mapObject.removeLayer(layer)
+      })
+      this.$store.commit("CLEAR_TILE_LIST")
     },
+    facilities(fac) {
+      if (!fac.length) return;
+      let marklist = []
+      fac.forEach(el => {
+        let marker = L.marker(L.latLng(el.placement.coordinates));
+        marklist.push(marker)
+      });
+
+      this.markers.addLayers(marklist)
+      this.$refs.map.mapObject.addLayer(this.markers)
+      this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')
+
+    }
   },
-  data() {
+  data () {
     return {
+      markers: L.markerClusterGroup({ chunkedLoading: true, disableClusteringAtZoom: 14, removeOutsideVisibleBounds: true}),
       url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       attribution:
         '&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a> contributors',
@@ -135,10 +156,36 @@ export default {
       greenSquareWeights: [
         686.5, 1092.0, 1720.0, 2734.8, 4956.0, 5000000.0
       ],
-      zoomBorder: 14
+      zoomBorder: 14,
+      lastLayer: null,
     };
   },
   methods: {
+    getRadius: function (availability) {
+      if (availability === 4) return 500;
+      if (availability === 3) return 1000;
+      if (availability === 2) return 3000;
+      if (availability === 1) return 5000;
+    },
+    getSquareCircleOpacity: function (square) {
+      let opacity = 0;
+      if (this.isSquareCircleGreen(square)) {
+        for (const weight of this.greenSquareWeights) {
+          opacity += 0.2
+          if (square <= weight) break;
+        }
+      } else {
+        opacity = 1
+        for (const weight of this.redSquareWeights) {
+          opacity -= 0.18
+          if (square < weight) break;
+        }
+      }
+      return opacity * this.maxOpacityPerFacility
+    },
+    isSquareCircleGreen: function (square) {
+      return square > this.greenSquareWeights[0]
+    },
     update: function (bounds) {
       this.bounds = bounds;
       this.$store.dispatch("getSmallHexes", {tiles: this.bbox2tiles(this.boundsToBbox(bounds), 13)})
@@ -232,7 +279,7 @@ export default {
     getSportsNameById(ids) {
       let res = "";
       ids.forEach( id => {
-        res += this.$store.getters.sportTypes.find((sport) => sport.id == id).name + " "
+        res += this.$store.getters.sportTypes.find((sport) => sport.id === id).name + " "
       })
       return res
     },
@@ -256,9 +303,9 @@ export default {
 </script>
 
 <style >
-@import "~leaflet/dist/leaflet.css";
 @import "~leaflet.markercluster/dist/MarkerCluster.css";
 @import "~leaflet.markercluster/dist/MarkerCluster.Default.css";
+@import url("https://unpkg.com/leaflet@1.0.0/dist/leaflet.css");
 
 .selected {
   filter: hue-rotate(265deg);
