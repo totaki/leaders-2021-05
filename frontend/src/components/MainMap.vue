@@ -9,7 +9,7 @@
   >
     <l-control-layers position="bottomleft"></l-control-layers>
     <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
-    <l-layer-group ref="circles" :visible='false' name="Плотность спортивных объектов" layer-type="base">
+    <l-layer-group ref="circles" :visible='showMarkersLayer' name="Плотность спортивных объектов" layer-type="base">
       <l-circle
           v-for="item in facilities"
           :key="'c' + item.id"
@@ -23,7 +23,7 @@
           :interactive="false"
       />
     </l-layer-group>
-    <l-layer-group :visible='false' name="Плотность населения" layer-type="base">
+    <l-layer-group :visible='showPopulationDensityLayer' name="Плотность населения" layer-type="base">
       <l-polygon
           v-for="poly in hexes"
           :lat-lngs="poly.polygon.coordinates[0]"
@@ -140,6 +140,8 @@ export default {
         686.5, 1092.0, 1720.0, 2734.8, 4956.0, 5000000.0
       ],
       zoomBorder: 14,
+      showMarkersLayer: false,
+      showPopulationDensityLayer: true
     };
   },
   methods: {
@@ -225,7 +227,7 @@ export default {
       return tiles
     },
     getZoomForTiles() {
-      return this.zoom > 13? 13: 12
+      return 13
     },
     getFacilityReport(id) {
       this.$store.dispatch("getFacilityReport",{ id })
