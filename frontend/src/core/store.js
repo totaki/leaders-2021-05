@@ -8,13 +8,15 @@ Vue.use(Vuex)
 const state = {
   departments: [],
   facilities: [],
+  big_hexes: localStorage.big_hexes ? JSON.parse(localStorage.big_hexes): [],
+  small_hexes: localStorage.initial_small_hexes ? JSON.parse(localStorage.initial_small_hexes): [],
   areaTypes: [],
   sportTypes: [],
   availabilities: [
-    {id: 1, name: "Шаговая доступность"},
-    {id: 2, name: "Районная доступность"},
-    {id: 3, name: "Окружная доступность"},
-    {id: 4, name: "Городского значения"},
+    {id: 4, name: "Шаговая доступность"},
+    {id: 3, name: "Районная доступность"},
+    {id: 2, name: "Окружная доступность"},
+    {id: 1, name: "Городского значения"},
   ],
   selectedFacility: null,
   facilityFilter: {department: null},
@@ -47,6 +49,8 @@ const state = {
 const getters = {
   departments: state => state.departments,
   facilities: state => state.facilities,
+  big_hexes: state => state.big_hexes,
+  small_hexes: state => state.small_hexes,
   areaTypes: state => state.areaTypes,
   sportTypes: state => state.sportTypes,
   availabilities: state => state.availabilities,
@@ -87,6 +91,24 @@ const actions = {
         commit("SET_FACILITIES", r.data.results)
       })
   },
+  getBigHexes: ({ commit }) => {
+    api.getBigHexes()
+      .then(r => {
+        commit("SET_BIG_HEXES", r.data.results)
+      })
+  },
+  getSmallHexes: async ({commit}, {tiles}) => {
+    const requests = tiles.map(([x, y, zoom]) => api.getSmallHexes(zoom, x, y))
+    let hexes = []
+    axios.all(requests).then(axios.spread((...responses) => {
+      for (const response of responses) {
+        hexes.push(...response.data.results)
+      }
+      commit("SET_SMALL_HEXES", hexes.filter((item, idx) => hexes.findIndex(hex => hex.id === item.id) === idx))
+    })).catch(errors => {
+      console.log(errors)
+    })
+  },
   getSelectedFacility: ({commit}, {facility}) => {
     commit("SET_SELECTED_FACILITY", facility)
   },
@@ -123,11 +145,15 @@ const actions = {
 }
 
 const mutations = {
-  SET_DEPARTMENTS: (state, items) => {
-    state.departments = items
+  SET_DEPARTMENTS: (state, items) => {state.departments = items},
+  SET_FACILITIES: (state, items) => {state.facilities = items},
+  SET_BIG_HEXES: (state, items) => {
+    if (!state.big_hexes.length) localStorage.setItem('big_hexes', JSON.stringify(items))
+    state.big_hexes = items
   },
-  SET_NEW_FACILITIES: (state, items) => {
-    state.newFacilities = items
+  SET_SMALL_HEXES: (state, items) => {
+    if (!state.small_hexes.length) localStorage.setItem('initial_small_hexes', JSON.stringify(items))
+    state.small_hexes = items
   },
   SET_AREA_TYPES: (state, items) => {
     state.areaTypes = items
@@ -157,7 +183,10 @@ const mutations = {
   },
   CLEAR_TILE_LIST: (state) => {
     state.lastTilesList = new Set();
-  }
+  },
+  SET_NEW_FACILITIES: (state, items) => {
+    state.newFacilities = items
+  },
 }
 
 export default new Vuex.Store({

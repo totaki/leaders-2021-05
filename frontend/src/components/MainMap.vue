@@ -7,7 +7,34 @@
     @update:bounds="update"
     @update:zoom="onZoom"
   >
-    <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
+    <l-control-layers position="bottomleft"></l-control-layers>
+    <l-tile-layer ref="tileLayer" :url="url" :attribution="attribution"></l-tile-layer>
+    <l-layer-group ref="circles" :visible='false' name="Плотность спортивных объектов" layer-type="base">
+      <l-circle
+          v-for="item in facilities"
+          :key="'c' + item.id"
+          :lat-lng="item.placement.coordinates"
+          :radius="getRadius(item.availability)"
+          :fillColor="isSquareCircleGreen(item.square) ? 'green': 'red'"
+          :weight="0"
+          :color="isSquareCircleGreen(item.square) ? 'green': 'red'"
+          :opacity="0.45"
+          :fillOpacity="getSquareCircleOpacity(item.square)"
+          :interactive="false"
+      />
+    </l-layer-group>
+    <l-layer-group ref="hexes" :visible='false' name="Плотность населения" layer-type="base">
+      <l-polygon
+          v-for="poly in hexes"
+          :lat-lngs="poly.polygon.coordinates[0]"
+          :key="poly.id"
+          fillColor="red"
+          :fillOpacity="getOpacity(poly.population)"
+          :interactive="false"
+          :weight="0">
+      </l-polygon>
+    </l-layer-group>
+
     <l-marker v-if="selectedFacility" :lat-lng="selectedFacility.placement.coordinates" :icon="icon">
     </l-marker>
 
@@ -16,7 +43,7 @@
 </template>
 
 <script>
-import {LMap, LTileLayer, LMarker,  } from 'vue2-leaflet';
+import {LMap, LTileLayer, LMarker, LPolygon, LControlLayers, LLayerGroup} from 'vue2-leaflet';
 import L from "leaflet";
 import icon from "../icon.png";
 import "leaflet.markercluster/dist/leaflet.markercluster-src"
@@ -25,6 +52,9 @@ export default {
     LMap,
     LTileLayer,
     LMarker,
+    LPolygon,
+    LControlLayers,
+    LLayerGroup
   },
   computed: {
     facilities() {
@@ -43,6 +73,10 @@ export default {
       if (this.$store.getters.facilities.length > 1000) return 0.07;
       if (this.$store.getters.facilities.length > 500) return 0.12;
       return 0.3
+    },
+    hexes() {
+      if (this.isBigHexes) return this.$store.getters.big_hexes;
+      return this.$store.getters.small_hexes;
     }
   },
   watch: {
@@ -51,6 +85,9 @@ export default {
       this.center = newVal.placement.coordinates;
     },
     facilityFilter(newVal) {
+      this.markers.clearLayers()
+      this.$store.commit("CLEAR_TILE_LIST")
+      this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')
       this.$store.dispatch(
         "getFacilitiesByTiles",
         {
@@ -58,28 +95,17 @@ export default {
           facilityFilter: newVal
         }
       )
-      this.$refs.map.mapObject.eachLayer( layer => {
-        console.log(typeof layer.getAttribution);
-        if (typeof layer.getAttribution === 'function' && layer.getAttribution() === this.attribution) {
-            return
-        }
-        this.$refs.map.mapObject.removeLayer(layer)
-      })
-      this.$store.commit("CLEAR_TILE_LIST")
     },
     facilities(fac) {
       if (!fac.length) return;
-      let marklist = []
       fac.forEach(el => {
         let marker = L.marker(L.latLng(el.placement.coordinates));
-        marklist.push(marker)   
+        this.markers.addLayer(marker)
       });
-      
-      this.markers.addLayers(marklist)
-      this.$refs.map.mapObject.addLayer(this.markers)
-      this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')
+      this.$refs.circles.mapObject.addLayer(this.markers)
+      this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')     
+    },
 
-    }
   },
   data () {
     return {
@@ -90,6 +116,10 @@ export default {
       startZoom: 14,
       zoom: 14,
       center: [55.751244, 37.618423],
+      bigHexBins: [27, 379, 1900, 6627, 11525, 17106, 23040, 26530, 43127],
+      smallHexBins: [5, 22, 360, 1597, 2661, 3805, 4739, 5333, 11000],
+      isBigHexes: false,
+      bounds: null,
       icon: L.icon({
         iconUrl: icon,
         popupAnchor: [1,-35],
@@ -102,7 +132,6 @@ export default {
         686.5, 1092.0, 1720.0, 2734.8, 4956.0, 5000000.0
       ],
       zoomBorder: 14,
-      lastLayer: null,
     };
   },
   methods: {
@@ -133,6 +162,7 @@ export default {
     },
     update: function (bounds) {
       this.bounds = bounds;
+      this.$store.dispatch("getSmallHexes", {tiles: this.bbox2tiles(this.boundsToBbox(bounds), 13)})
       this.$store.dispatch(
           "getFacilitiesByTiles",
           {
@@ -142,7 +172,20 @@ export default {
       )
     },
     onZoom: function (zoom) {
-      this.zoom = zoom
+      if (this.isBigHexes && zoom >= 14) {
+        this.isBigHexes = false;
+        // this.$store.dispatch("getSmallHexes", {bbox: this.boundsToBbox(this.bounds)});
+      } else if (!this.isBigHexes && zoom < 14) {
+        this.isBigHexes = true;
+      }
+    },
+    getOpacity: function (population) {
+      let opacity = 0;
+      for (const val of (this.isBigHexes ? this.bigHexBins : this.smallHexBins)) {
+        opacity += 0.1
+        if (population < val) break;
+      }
+      return opacity * 0.7
     },
     boundsToBbox: function (bounds) {
       return [bounds._southWest.lat, bounds._southWest.lng, bounds._northEast.lat, bounds._northEast.lng]
@@ -152,6 +195,13 @@ export default {
     },
     lat2tile: function (lat, zoom) {
       return (Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom)));
+    },
+    tile2long: function (x, z) {
+      return (x / Math.pow(2, z) * 360 - 180);
+    },
+    tile2lat: function (y, z) {
+      const n = Math.PI - 2 * Math.PI * y / Math.pow(2, z);
+      return (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
     },
     bbox2tiles: function (bbox, zoom) {
       const y1 = this.lat2tile(bbox[1], zoom);
@@ -167,7 +217,7 @@ export default {
       return tiles
     },
     getZoomForTiles() {
-      return this.zoom > 13? 13: 12
+      return 13
     },
     getFacilityReport(id) {
       this.$store.dispatch("getFacilityReport",{ id })
@@ -185,7 +235,19 @@ export default {
     getAreaTypeById(id) {
       return this.$store.getters.areaTypes.find( item => item.id === id)
     },
-  }
+  },
+  mounted() {
+    // initial hexes
+    if (!this.$store.getters.small_hexes.length) {
+      this.$store.dispatch(
+          "getSmallHexes",
+          {tiles: this.bbox2tiles([55.729188403516886, 37.54363059997559, 55.77324203759852, 37.693748474121094], 13)}
+      )
+    }
+    if (!this.$store.getters.big_hexes.length) {
+      this.$store.dispatch("getBigHexes");
+    }
+  },
 }
 </script>
 

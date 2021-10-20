@@ -1,7 +1,7 @@
 import axios from "axios"
 
 const api = axios.create({
-  baseURL: process.env.NODE_ENV === "production" ? "/api/v1" : 'http://localhost:8000/api/v1' ,
+  baseURL: 'http://localhost:8000/api/v1',
 });
 
 function serialize(obj) {
@@ -31,6 +31,11 @@ const getAreaTypes = () => api.get(`/sport-area-types`)
 const getSportTypes = () => api.get(`/sport-types`)
 const getFacilityReport = (id) => api.get(`/facilities/${id}/report`)
 
+const getBigHexes = () => api.get(`/density/big-hex?limit=3500`)
+
+// const getSmallHexes = (bbox) => api.get(`/density/small-hex?in_bbox=${bbox.join()}&limit=1500`)
+const getSmallHexes = (zoom, x, y) => api.get(`/density/small-hex?tile=${zoom}/${x}/${y}&limit=1500`)
+
 export default {
   getDepartments,
   getFacilities,
@@ -38,4 +43,6 @@ export default {
   getAreaTypes,
   getSportTypes,
   getFacilityReport,
+  getBigHexes,
+  getSmallHexes,
 }
