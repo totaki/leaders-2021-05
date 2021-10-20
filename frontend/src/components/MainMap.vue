@@ -1,5 +1,6 @@
 <template>
   <l-map
+    ref="map"
     style="height: 100%; position: relative; z-index: 1"
     :zoom="startZoom"
     :center="center"
@@ -7,41 +8,6 @@
     @update:zoom="onZoom"
   >
     <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
-    <v-marker-cluster :options="{chunkedLoading: true, disableClusteringAtZoom: 14}">
-      <template v-for="item in facilities">
-        <l-marker v-if="!selectedFacility || item.id !== selectedFacility.id" :lat-lng="item.placement.coordinates" :key="item.id" @click="()=>getFacilityReport(item.id)" >
-          <l-popup>
-              <p>Name: {{facilityReport.name}} </p>
-                <p>Availability: {{getAvailabilityNameById(facilityReport.availability).name}} </p>
-                <p>Department: {{facilityReport.department.name}} </p>
-               <p>Sports areas: </p>
-               <div v-for="area in facilityReport.areas" :key="area.id">
-                  <div class='text-body-2'>
-                   &emsp; Name: {{area.name}} 
-                  </div>
-                  <div class='text-body-2'>
-                    &emsp;&emsp; Sports: {{getSportsNameById(area.sports)}} 
-                  </div>
-                  <div class='text-body-2'>
-                    &emsp;&emsp; Type: {{getAreaTypeById(area.type).name}}                     
-                  </div>
-                </div>            
-          </l-popup>
-        </l-marker>
-      </template>
-    </v-marker-cluster>
-    <l-circle
-        v-for="item in facilities"
-        :key="'c' + item.id"
-        :lat-lng="item.placement.coordinates"
-        :radius="getRadius(item.availability)"
-        :fillColor="isSquareCircleGreen(item.square) ? 'green': 'red'"
-        :weight="0"
-        :color="isSquareCircleGreen(item.square) ? 'green': 'red'"
-        :opacity="0.45"
-        :fillOpacity="getSquareCircleOpacity(item.square)"
-        :interactive="false"
-    />
     <l-marker v-if="selectedFacility" :lat-lng="selectedFacility.placement.coordinates" :icon="icon">
     </l-marker>
 
@@ -50,23 +16,19 @@
 </template>
 
 <script>
-import {LMap, LTileLayer, LMarker, LCircle, LPopup} from 'vue2-leaflet';
+import {LMap, LTileLayer, LMarker,  } from 'vue2-leaflet';
 import L from "leaflet";
 import icon from "../icon.png";
-import Vue2LeafletMarkerCluster from "vue2-leaflet-markercluster";
-
+import "leaflet.markercluster/dist/leaflet.markercluster-src"
 export default {
   components: {
     LMap,
     LTileLayer,
     LMarker,
-    LCircle,
-    LPopup,
-    "v-marker-cluster": Vue2LeafletMarkerCluster
   },
   computed: {
     facilities() {
-      return this.$store.getters.facilities;
+      return this.$store.getters.newFacilities;
     },
     selectedFacility() {
       return this.$store.getters.selectedFacility;
@@ -96,10 +58,32 @@ export default {
           facilityFilter: newVal
         }
       )
+      this.$refs.map.mapObject.eachLayer( layer => {
+        console.log(typeof layer.getAttribution);
+        if (typeof layer.getAttribution === 'function' && layer.getAttribution() === this.attribution) {
+            return
+        }
+        this.$refs.map.mapObject.removeLayer(layer)
+      })
+      this.$store.commit("CLEAR_TILE_LIST")
     },
+    facilities(fac) {
+      if (!fac.length) return;
+      let marklist = []
+      fac.forEach(el => {
+        let marker = L.marker(L.latLng(el.placement.coordinates));
+        marklist.push(marker)   
+      });
+      
+      this.markers.addLayers(marklist)
+      this.$refs.map.mapObject.addLayer(this.markers)
+      this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')
+
+    }
   },
   data () {
     return {
+      markers: L.markerClusterGroup({ chunkedLoading: true, disableClusteringAtZoom: 14, removeOutsideVisibleBounds: true}),
       url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       attribution:
         '&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a> contributors',
@@ -117,7 +101,8 @@ export default {
       greenSquareWeights: [
         686.5, 1092.0, 1720.0, 2734.8, 4956.0, 5000000.0
       ],
-      zoomBorder: 14
+      zoomBorder: 14,
+      lastLayer: null,
     };
   },
   methods: {
@@ -193,7 +178,7 @@ export default {
     getSportsNameById(ids) {
       let res = "";
       ids.forEach( id => {
-        res += this.$store.getters.sportTypes.find((sport) => sport.id == id).name + " "
+        res += this.$store.getters.sportTypes.find((sport) => sport.id === id).name + " "
       })
       return res
     },
@@ -205,9 +190,9 @@ export default {
 </script>
 
 <style >
-@import "~leaflet/dist/leaflet.css";
 @import "~leaflet.markercluster/dist/MarkerCluster.css";
 @import "~leaflet.markercluster/dist/MarkerCluster.Default.css";
+@import url("https://unpkg.com/leaflet@1.0.0/dist/leaflet.css");
 
 .selected {
   filter: hue-rotate(265deg);
