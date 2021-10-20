@@ -7,51 +7,34 @@
     @update:bounds="update"
     @update:zoom="onZoom"
   >
+    <l-control-layers position="bottomleft"></l-control-layers>
     <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
-    <l-polygon
-        v-for="poly in hexes"
-        :lat-lngs="poly.polygon.coordinates[0]"
-        :key="poly.id"
-        fillColor="red"
-        :fillOpacity="getOpacity(poly.population)"
-        :interactive="false"
-        :weight="0">
-    </l-polygon>
-    <v-marker-cluster :options="{chunkedLoading: true, disableClusteringAtZoom: 14}">
-      <template v-for="item in facilities">
-        <l-marker v-if="!selectedFacility || item.id !== selectedFacility.id" :lat-lng="item.placement.coordinates" :key="item.id" @click="()=>getFacilityReport(item.id)" >
-          <l-popup>
-              <p>Name: {{facilityReport.name}} </p>
-                <p>Availability: {{getAvailabilityNameById(facilityReport.availability).name}} </p>
-                <p>Department: {{facilityReport.department.name}} </p>
-               <p>Sports areas: </p>
-               <div v-for="area in facilityReport.areas" :key="area.id">
-                  <div class='text-body-2'>
-                   &emsp; Name: {{area.name}}
-                  </div>
-                  <div class='text-body-2'>
-                    &emsp;&emsp; Sports: {{getSportsNameById(area.sports)}}
-                  </div>
-                  <div class='text-body-2'>
-                    &emsp;&emsp; Type: {{getAreaTypeById(area.type).name}}
-                  </div>
-                </div>
-          </l-popup>
-        </l-marker>
-      </template>
-    </v-marker-cluster>
-    <l-circle
-        v-for="item in facilities"
-        :key="'c' + item.id"
-        :lat-lng="item.placement.coordinates"
-        :radius="getRadius(item.availability)"
-        :fillColor="isSquareCircleGreen(item.square) ? 'green': 'red'"
-        :weight="0"
-        :color="isSquareCircleGreen(item.square) ? 'green': 'red'"
-        :opacity="0.45"
-        :fillOpacity="getSquareCircleOpacity(item.square)"
-        :interactive="false"
-    />
+    <l-layer-group :visible='false' name="Плотность спортивных объектов" layer-type="base">
+      <l-circle
+          v-for="item in facilities"
+          :key="'c' + item.id"
+          :lat-lng="item.placement.coordinates"
+          :radius="getRadius(item.availability)"
+          :fillColor="isSquareCircleGreen(item.square) ? 'green': 'red'"
+          :weight="0"
+          :color="isSquareCircleGreen(item.square) ? 'green': 'red'"
+          :opacity="0.45"
+          :fillOpacity="getSquareCircleOpacity(item.square)"
+          :interactive="false"
+      />
+    </l-layer-group>
+    <l-layer-group :visible='false' name="Плотность населения" layer-type="base">
+      <l-polygon
+          v-for="poly in hexes"
+          :lat-lngs="poly.polygon.coordinates[0]"
+          :key="poly.id"
+          fillColor="red"
+          :fillOpacity="getOpacity(poly.population)"
+          :interactive="false"
+          :weight="0">
+      </l-polygon>
+    </l-layer-group>
+
     <l-marker v-if="selectedFacility" :lat-lng="selectedFacility.placement.coordinates" :icon="icon">
     </l-marker>
 
@@ -60,7 +43,7 @@
 </template>
 
 <script>
-import {LMap, LTileLayer, LMarker, LCircle, LPopup} from 'vue2-leaflet';
+import {LMap, LTileLayer, LMarker, LPolygon, LControlLayers, LLayerGroup} from 'vue2-leaflet';
 import L from "leaflet";
 import icon from "../icon.png";
 import "leaflet.markercluster/dist/leaflet.markercluster-src"
@@ -69,9 +52,9 @@ export default {
     LMap,
     LTileLayer,
     LMarker,
-    LCircle,
-    LPopup,
-    "v-marker-cluster": Vue2LeafletMarkerCluster
+    LPolygon,
+    LControlLayers,
+    LLayerGroup
   },
   computed: {
     facilities() {
@@ -241,31 +224,6 @@ export default {
         }
       }
       return tiles
-    },
-    getRadius: function (availability) {
-      if (availability === 4) return 500;
-      if (availability === 3) return 1000;
-      if (availability === 2) return 3000;
-      if (availability === 1) return 5000;
-    },
-    getSquareCircleOpacity: function (square) {
-      let opacity = 0;
-      if (this.isSquareCircleGreen(square)) {
-        for (const weight of this.greenSquareWeights) {
-          opacity += 0.2
-          if (square <= weight) break;
-        }
-      } else {
-        opacity = 1
-        for (const weight of this.redSquareWeights) {
-          opacity -= 0.18
-          if (square < weight) break;
-        }
-      }
-      return opacity * this.maxOpacityPerFacility
-    },
-    isSquareCircleGreen: function (square) {
-      return square > this.greenSquareWeights[0]
     },
     getZoomForTiles() {
       return this.zoom > 13? 13: 12

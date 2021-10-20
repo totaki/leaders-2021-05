@@ -183,7 +183,10 @@ const mutations = {
   },
   CLEAR_TILE_LIST: (state) => {
     state.lastTilesList = new Set();
-  }
+  },
+  SET_NEW_FACILITIES: (state, items) => {
+    state.newFacilities = items
+  },
 }
 
 export default new Vuex.Store({
