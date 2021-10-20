@@ -43,7 +43,8 @@ const state = {
   facilitiesCancelTokenSource: axios.CancelToken.source(),
   lastTilesList: new Set(),
   lastFacilityFilter: null,
-  newFacilities: []
+  newFacilities: [],
+  lastDensityTiles: []
 }
 
 const getters = {
@@ -98,6 +99,8 @@ const actions = {
       })
   },
   getSmallHexes: async ({commit}, {tiles}) => {
+    if (JSON.stringify(state.lastDensityTiles) === JSON.stringify(tiles)) return;
+    commit("SET_LAST_DENSITY_TILES", tiles)
     const requests = tiles.map(([x, y, zoom]) => api.getSmallHexes(zoom, x, y))
     let hexes = []
     axios.all(requests).then(axios.spread((...responses) => {
@@ -186,6 +189,9 @@ const mutations = {
   },
   SET_NEW_FACILITIES: (state, items) => {
     state.newFacilities = items
+  },
+  SET_LAST_DENSITY_TILES: (state, items) => {
+    state.lastDensityTiles = items
   },
 }
 
