@@ -140,7 +140,6 @@ export default {
         686.5, 1092.0, 1720.0, 2734.8, 4956.0, 5000000.0
       ],
       zoomBorder: 14,
-      lastLayer: null,
     };
   },
   methods: {
