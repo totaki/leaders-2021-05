@@ -8,8 +8,8 @@
     @update:zoom="onZoom"
   >
     <l-control-layers position="bottomleft"></l-control-layers>
-    <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
-    <l-layer-group ref="circles" :visible='showMarkersLayer' name="Плотность спортивных объектов" layer-type="base">
+    <l-tile-layer ref="tileLayer" :url="url" :attribution="attribution"></l-tile-layer>
+    <l-layer-group ref="circles" :visible='false' name="Плотность спортивных объектов" layer-type="base">
       <l-circle
           v-for="item in facilities"
           :key="'c' + item.id"
@@ -23,7 +23,7 @@
           :interactive="false"
       />
     </l-layer-group>
-    <l-layer-group :visible='showPopulationDensityLayer' name="Плотность населения" layer-type="base">
+    <l-layer-group ref="hexes" :visible='false' name="Плотность населения" layer-type="base">
       <l-polygon
           v-for="poly in hexes"
           :lat-lngs="poly.polygon.coordinates[0]"
@@ -85,6 +85,9 @@ export default {
       this.center = newVal.placement.coordinates;
     },
     facilityFilter(newVal) {
+      this.markers.clearLayers()
+      this.$store.commit("CLEAR_TILE_LIST")
+      this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')
       this.$store.dispatch(
         "getFacilitiesByTiles",
         {
@@ -92,28 +95,17 @@ export default {
           facilityFilter: newVal
         }
       )
-      this.$refs.map.mapObject.eachLayer( layer => {
-        console.log(typeof layer.getAttribution);
-        if (typeof layer.getAttribution === 'function' && layer.getAttribution() === this.attribution) {
-            return
-        }
-        this.$refs.map.mapObject.removeLayer(layer)
-      })
-      this.$store.commit("CLEAR_TILE_LIST")
     },
     facilities(fac) {
       if (!fac.length) return;
-      let marklist = []
       fac.forEach(el => {
         let marker = L.marker(L.latLng(el.placement.coordinates));
-        marklist.push(marker)
+        this.markers.addLayer(marker)
       });
-
-      this.markers.addLayers(marklist)
       this.$refs.circles.mapObject.addLayer(this.markers)
-      this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')
+      this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')     
+    },
 
-    }
   },
   data () {
     return {
@@ -140,8 +132,6 @@ export default {
         686.5, 1092.0, 1720.0, 2734.8, 4956.0, 5000000.0
       ],
       zoomBorder: 14,
-      showMarkersLayer: false,
-      showPopulationDensityLayer: true
     };
   },
   methods: {
