@@ -154,6 +154,9 @@ const mutations = {
   },
   CLEAR_NEW_FACILITIES_BUFFER: (state) => {
     state.newFacilities = []
+  },
+  CLEAR_TILE_LIST: (state) => {
+    state.lastTilesList = new Set();
   }
 }
 

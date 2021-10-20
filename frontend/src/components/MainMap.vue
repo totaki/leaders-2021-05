@@ -92,13 +92,6 @@ export default {
       this.center = newVal.placement.coordinates;
     },
     facilityFilter(newVal) {
-      console.log(newVal);
-      // this.$store.dispatch(
-      //   "getFacilities",
-      //   {
-      //     facilityFilter: newVal
-      //   }
-      // )
       this.$store.dispatch(
         "getFacilitiesByTiles",
         {
@@ -106,17 +99,27 @@ export default {
           facilityFilter: newVal
         }
       )
+      this.$refs.map.mapObject.eachLayer( layer => {
+        console.log(typeof layer.getAttribution);
+        if (typeof layer.getAttribution === 'function' && layer.getAttribution() === this.attribution) {
+            return
+        }
+        this.$refs.map.mapObject.removeLayer(layer)
+      })
+      this.$store.commit("CLEAR_TILE_LIST")
     },
     facilities(fac) {
       if (!fac.length) return;
       let marklist = []
       fac.forEach(el => {
-        marklist.push(L.marker(L.latLng(el.placement.coordinates)))   
+        let marker = L.marker(L.latLng(el.placement.coordinates));
+        marklist.push(marker)   
       });
       
       this.markers.addLayers(marklist)
       this.$refs.map.mapObject.addLayer(this.markers)
       this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')
+
     }
   },
   data () {
@@ -141,7 +144,6 @@ export default {
       ],
       zoomBorder: 14,
       lastLayer: null,
-      
     };
   },
   methods: {
@@ -229,13 +231,9 @@ export default {
 </script>
 
 <style >
-/* @import "~leaflet/dist/leaflet.css"; */
 @import "~leaflet.markercluster/dist/MarkerCluster.css";
 @import "~leaflet.markercluster/dist/MarkerCluster.Default.css";
 @import url("https://unpkg.com/leaflet@1.0.0/dist/leaflet.css");
-/* @import "~leaflet/dist/"; */
-@import "~leaflet.markercluster/dist/MarkerCluster.css";
-@import "~leaflet.markercluster/dist/MarkerCluster.Default.css";
 
 .selected {
   filter: hue-rotate(265deg);
