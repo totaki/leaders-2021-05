@@ -42,11 +42,12 @@
           <v-list-item>
             <v-list-item-content>
               <v-autocomplete
+                multiple
                 label="Sport type"
                 :items="sportTypes"
                 item-text="name"
                 item-value="id"
-                @change="(val) => filter.sport_type = val"
+                @change="(val) => filter.sports = val"
               ></v-autocomplete>
             </v-list-item-content>
           </v-list-item>

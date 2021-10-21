@@ -30,8 +30,11 @@
           :key="poly.id"
           fillColor="red"
           :fillOpacity="getOpacity(poly.population)"
-          :interactive="false"
           :weight="0">
+          <l-popup >
+            <p>Population: {{Math.round(poly.population)}}</p>
+            <p>Density: {{ isBigHexes? Math.round( poly.population * 0.85) :Math.round( poly.population * 0.1)}}</p>
+          </l-popup>
       </l-polygon>
     </l-layer-group>
 
@@ -43,7 +46,7 @@
 </template>
 
 <script>
-import {LMap, LTileLayer, LMarker, LPolygon, LControlLayers, LLayerGroup} from 'vue2-leaflet';
+import {LMap, LTileLayer, LMarker, LPolygon, LControlLayers, LLayerGroup, LPopup} from 'vue2-leaflet';
 import L from "leaflet";
 import icon from "../icon.png";
 import "leaflet.markercluster/dist/leaflet.markercluster-src"
@@ -54,7 +57,8 @@ export default {
     LMarker,
     LPolygon,
     LControlLayers,
-    LLayerGroup
+    LLayerGroup,
+    LPopup
   },
   computed: {
     facilities() {
