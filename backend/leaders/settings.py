@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'facilities',
     'density',
+    'sport_density',
 ]
 
 MIDDLEWARE = [
