@@ -23,20 +23,8 @@
           :interactive="false"
       />
     </l-layer-group>
-    <l-layer-group ref="hexes" :visible='false' name="Плотность населения" layer-type="base">
-      <l-polygon
-          v-for="poly in hexes"
-          :lat-lngs="poly.polygon.coordinates[0]"
-          :key="poly.id"
-          fillColor="red"
-          :fillOpacity="getOpacity(poly.population)"
-          :weight="0">
-          <l-popup >
-            <p>Population: {{Math.round(poly.population)}}</p>
-            <p>Density: {{ isBigHexes? Math.round( poly.population * 0.85) :Math.round( poly.population * 0.1)}}</p>
-          </l-popup>
-      </l-polygon>
-    </l-layer-group>
+    
+    <hexes-layer-group name="Плотность населения" :hexes="hexes" :isBigHexes="isBigHexes"></hexes-layer-group>
 
     <l-marker v-if="selectedFacility" :lat-lng="selectedFacility.placement.coordinates" :icon="icon">
     </l-marker>
@@ -46,19 +34,20 @@
 </template>
 
 <script>
-import {LMap, LTileLayer, LMarker, LPolygon, LControlLayers, LLayerGroup, LPopup} from 'vue2-leaflet';
+import {LMap, LTileLayer, LMarker, LControlLayers, LLayerGroup,} from 'vue2-leaflet';
 import L from "leaflet";
 import icon from "../icon.png";
 import "leaflet.markercluster/dist/leaflet.markercluster-src"
+import HexesLayerGroup from './HexesLayerGroup.vue';
+
 export default {
   components: {
     LMap,
     LTileLayer,
     LMarker,
-    LPolygon,
     LControlLayers,
     LLayerGroup,
-    LPopup
+    HexesLayerGroup,
   },
   computed: {
     facilities() {
@@ -120,8 +109,6 @@ export default {
       startZoom: 14,
       zoom: 14,
       center: [55.751244, 37.618423],
-      bigHexBins: [27, 379, 1900, 6627, 11525, 17106, 23040, 26530, 43127],
-      smallHexBins: [5, 22, 360, 1597, 2661, 3805, 4739, 5333, 11000],
       isBigHexes: false,
       bounds: null,
       icon: L.icon({
@@ -242,16 +229,17 @@ export default {
   },
   mounted() {
     // initial hexes
-    if (!this.$store.getters.small_hexes.length) {
-      this.$store.dispatch(
-          "getSmallHexes",
-          {tiles: this.bbox2tiles([55.729188403516886, 37.54363059997559, 55.77324203759852, 37.693748474121094], 13)}
-      )
-    }
-    if (!this.$store.getters.big_hexes.length) {
-      this.$store.dispatch("getBigHexes");
-    }
-  },
+    // if (!this.$store.getters.small_hexes.length) {
+    //   this.$store.dispatch(
+    //       "getSmallHexes",
+    //       {tiles: this.bbox2tiles([55.729188403516886, 37.54363059997559, 55.77324203759852, 37.693748474121094], 13)}
+    //   )
+    // }
+    // if (!this.$store.getters.big_hexes.length) {
+    //   this.$store.dispatch("getBigHexes");
+    // }
+    this.update(this.$refs.map.mapObject.getBounds())
+  }
 }
 </script>
 

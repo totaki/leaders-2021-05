@@ -43,6 +43,7 @@
             <v-list-item-content>
               <v-autocomplete
                 multiple
+                clearable
                 label="Sport type"
                 :items="sportTypes"
                 item-text="name"
@@ -80,8 +81,7 @@
                 v-on:change="(val) => filter.department = val"
                 item-text="name"
                 item-value="id"
-                label="Select"
-                outlined
+                label="Departaments"
               ></v-autocomplete>
             </v-list-item-content>
           </v-list-item>
