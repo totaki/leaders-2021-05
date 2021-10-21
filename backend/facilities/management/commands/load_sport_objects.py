@@ -14,6 +14,7 @@ from facilities.models import (
     SportsAreaType,
     SportType,
 )
+from sport_density.models import HexIntersections
 
 
 def load_zone_types():
@@ -96,13 +97,22 @@ def load_hex(model: Type[PopulationHex], filename: str):
         next(reader, None)
         hexes = []
         for row in reader:
-            hexes.append(
-                model(
-                    polygon=row[1],
-                    population=row[2]
-                )
-            )
+            hexes.append(model(polygon=row[1], population=row[2]))
         model.objects.bulk_create(hexes)
+
+
+def load_hex_intersections():
+    with open(
+        f"{settings.BASE_DIR}/data/hex_facility_intersection.csv", newline=""
+    ) as file:
+        reader = csv.reader(file, quotechar='"')
+        next(reader, None)
+
+        for row in reader:
+            intersection = HexIntersections.objects.create(polygon=row[1])
+
+            facilities = json.loads(row[2])
+            intersection.facilities.add(*facilities)
 
 
 def clear_tables():
@@ -113,6 +123,7 @@ def clear_tables():
     SportsArea.objects.all().delete()
     PopulationHexBig.objects.all().delete()
     PopulationHexSmall.objects.all().delete()
+    HexIntersections.objects.all().delete()
 
 
 class Command(BaseCommand):
@@ -123,5 +134,6 @@ class Command(BaseCommand):
         load_departments()
         load_facilities()
         load_sports_areas()
-        load_hex(PopulationHexSmall, 'population_density.csv')
-        load_hex(PopulationHexBig, 'population_density_big.csv')
+        load_hex(PopulationHexSmall, "population_density.csv")
+        load_hex(PopulationHexBig, "population_density_big.csv")
+        load_hex_intersections()
