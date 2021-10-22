@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from sport_density.models import HexIntersections
+from sport_density.models import HexIntersections, BigHexIntersections
 
 
 class HexIntersectionsSerializer(ModelSerializer):
@@ -10,6 +10,15 @@ class HexIntersectionsSerializer(ModelSerializer):
 
     class Meta:
         model = HexIntersections
+        fields = ['id', 'polygon', 'square', 'areas_count']
+
+
+class BigHexIntersectionsSerializer(ModelSerializer):
+    square = serializers.FloatField()
+    areas_count = serializers.IntegerField()
+
+    class Meta:
+        model = BigHexIntersections
         fields = ['id', 'polygon', 'square', 'areas_count']
 
 
