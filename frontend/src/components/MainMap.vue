@@ -126,7 +126,7 @@ export default {
   data () {
     return {
       markers: L.markerClusterGroup({ chunkedLoading: true, disableClusteringAtZoom: 14, removeOutsideVisibleBounds: true}),
-      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      url: 'http://tile2.maps.2gis.com/tiles?x={x}&y={y}&z={z}',
       attribution:
         '&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a> contributors',
       startZoom: 14,
@@ -149,7 +149,7 @@ export default {
       activeLayers: [],
       bigHexBins: [27, 379, 1900, 6627, 11525, 17106, 23040, 26530, 43127],
       smallHexBins: [5, 22, 360, 1597, 2661, 3805, 4739, 5333, 11000],
-      sportHexBins: [0,168980, 229640, 267822, 292472, 361570, 481407, 680220, 880601, 1825083, 2375773, 5000000],
+      sportHexBins: [237, 386, 765, 1800, 2925, 4813, 8123, 14000, 29399, 44676, 123557, 294373],
     };
   },
   methods: {
