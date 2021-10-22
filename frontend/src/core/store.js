@@ -8,8 +8,8 @@ Vue.use(Vuex)
 const state = {
   departments: [],
   facilities: [],
-  big_hexes: localStorage.big_hexes ? JSON.parse(localStorage.big_hexes): [],
-  small_hexes: localStorage.initial_small_hexes ? JSON.parse(localStorage.initial_small_hexes): [],
+  big_hexes: [],
+  small_hexes: [],
   areaTypes: [],
   sportTypes: [],
   availabilities: [
@@ -92,16 +92,28 @@ const actions = {
         commit("SET_FACILITIES", r.data.results)
       })
   },
-  getBigHexes: ({ commit }) => {
-    api.getBigHexes()
+  getDensityBigHexes: ({dispatch}) => {
+    dispatch('getBigHexes',{api: api.getDensityBigHexes})
+  },
+  getBigHexes: ({ commit }, {api} ) => {
+    api()
       .then(r => {
         commit("SET_BIG_HEXES", r.data.results)
       })
   },
-  getSmallHexes: async ({commit}, {tiles}) => {
+  getDensitySmallHexes: ({dispatch},{tiles}) => {
+    dispatch('getSmallHexes',{tiles,api: api.getDensitySmallHexes})
+  },
+  getSportSmallHexes: ({dispatch},{tiles}) => {
+    dispatch('getSmallHexes',{tiles,api: api.getSportSmallHexes})
+  },
+  getSportIntersectionSmallHexes: ({dispatch},{tiles}) => {
+    dispatch('getSmallHexes',{tiles,api: api.getSportIntersectionSmallHexes})
+  },
+  getSmallHexes: ({commit},{ tiles, api}) => {
     if (JSON.stringify(state.lastDensityTiles) === JSON.stringify(tiles)) return;
     commit("SET_LAST_DENSITY_TILES", tiles)
-    const requests = tiles.map(([x, y, zoom]) => api.getSmallHexes(zoom, x, y))
+    const requests = tiles.map(([x, y, zoom]) => api(zoom, x, y))
     let hexes = []
     axios.all(requests).then(axios.spread((...responses) => {
       for (const response of responses) {
@@ -151,11 +163,9 @@ const mutations = {
   SET_DEPARTMENTS: (state, items) => {state.departments = items},
   SET_FACILITIES: (state, items) => {state.facilities = items},
   SET_BIG_HEXES: (state, items) => {
-    if (!state.big_hexes.length) localStorage.setItem('big_hexes', JSON.stringify(items))
     state.big_hexes = items
   },
   SET_SMALL_HEXES: (state, items) => {
-    if (!state.small_hexes.length) localStorage.setItem('initial_small_hexes', JSON.stringify(items))
     state.small_hexes = items
   },
   SET_AREA_TYPES: (state, items) => {

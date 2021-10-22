@@ -1,15 +1,14 @@
 <template>
-    <l-layer-group :visible='false' :name="name" layer-type="base">
+    <l-layer-group :visible='false' :name="name" :layer-type="layerType" :options='options'>
       <l-polygon
           v-for="poly in hexes"
           :lat-lngs="poly.polygon.coordinates[0]"
           :key="poly.id"
-          fillColor="red"
-          :fillOpacity="getOpacity(poly.population)"
+          :fillColor="color"
+          :fillOpacity="poly[opacityBy]/5000000 * 0.7"
           :weight="0">
           <l-popup>
-            <p>Population: {{Math.round(poly.population)}}</p>
-            <p>Density: {{ isBigHexes? Math.round( poly.population * 0.85) : Math.round( poly.population * 0.1)}}</p>
+            <slot name="popup" v-bind:prop="poly"></slot>
           </l-popup>
       </l-polygon>
     </l-layer-group>
@@ -18,7 +17,7 @@
 import { LPolygon, LLayerGroup, LPopup  } from 'vue2-leaflet';
 
 export default {
-    props:['hexes','isBigHexes','name'],
+    props:['hexes','isBigHexes','name','layerType','options','opacityBy','bins','color'],
     components: {
         LPolygon,
         LLayerGroup,
@@ -28,21 +27,20 @@ export default {
         console: () => console
     },
     created() {
-
+        console.log(this.hexes);
     },
     watch: {
 
     },
     data() {
         return {
-            bigHexBins: [27, 379, 1900, 6627, 11525, 17106, 23040, 26530, 43127],
-            smallHexBins: [5, 22, 360, 1597, 2661, 3805, 4739, 5333, 11000],
+            
         }
     },
     methods: {
-        getOpacity: function (population) {
+        getOpacity: function (population,bins) {
             let opacity = 0;
-            for (const val of (this.isBigHexes ? this.bigHexBins : this.smallHexBins)) {
+            for (const val of bins) {
                 opacity += 0.1
                 if (population < val) break;
             }

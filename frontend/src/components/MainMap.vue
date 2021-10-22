@@ -6,10 +6,12 @@
     :center="center"
     @update:bounds="update"
     @update:zoom="onZoom"
+    @overlayadd="overlayadd"
+    @overlayremove="overlayremove"
   >
-    <l-control-layers position="bottomleft"></l-control-layers>
+    <l-control-layers ref="control" position="bottomleft"></l-control-layers>
     <l-tile-layer ref="tileLayer" :url="url" :attribution="attribution"></l-tile-layer>
-    <l-layer-group ref="circles" :visible='false' name="Плотность спортивных объектов" layer-type="base">
+    <l-layer-group ref="circles" :visible='false' name="Спортивные объекты" layer-type="overlay">
       <l-circle
           v-for="item in facilities"
           :key="'c' + item.id"
@@ -23,9 +25,20 @@
           :interactive="false"
       />
     </l-layer-group>
-    
-    <hexes-layer-group name="Плотность населения" :hexes="hexes" :isBigHexes="isBigHexes"></hexes-layer-group>
+    <hexes-layer-group name="Плотность населения" :hexes="hexes" color="green" :bins="isBigHexes? bigHexBins : smallHexBins" opacityBy="population" layerType="overlay">
+      <template v-slot:popup="{prop}">
+        <p>Population: {{Math.round(prop.population)}}</p>
+        <p>Density: {{ isBigHexes? Math.round( prop.population * 0.85) : Math.round( prop.population * 0.1)}}</p>
+      </template>
+    </hexes-layer-group>
 
+    <hexes-layer-group name="Плотность спортивных объектов" :hexes="small_hexes" color="red" :bins="sportHexBins" :isBigHexes="false" opacityBy="square" layerType="overlay">
+      <template v-slot:popup="{prop}">
+        <p>Areas count: {{prop.areas_count }}</p>
+        <p>Square: {{ prop.square }}</p>
+      </template>
+    </hexes-layer-group>
+  
     <l-marker v-if="selectedFacility" :lat-lng="selectedFacility.placement.coordinates" :icon="icon">
     </l-marker>
 
@@ -50,6 +63,7 @@ export default {
     HexesLayerGroup,
   },
   computed: {
+    console: ()=> console,
     facilities() {
       return this.$store.getters.newFacilities;
     },
@@ -66,6 +80,9 @@ export default {
       if (this.$store.getters.facilities.length > 1000) return 0.07;
       if (this.$store.getters.facilities.length > 500) return 0.12;
       return 0.3
+    },
+    small_hexes(){
+      return this.$store.getters.small_hexes;
     },
     hexes() {
       if (this.isBigHexes) return this.$store.getters.big_hexes;
@@ -93,12 +110,18 @@ export default {
       if (!fac.length) return;
       fac.forEach(el => {
         let marker = L.marker(L.latLng(el.placement.coordinates));
+        marker.on('click', () => this.showInformation(el))
         this.markers.addLayer(marker)
       });
       this.$refs.circles.mapObject.addLayer(this.markers)
       this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')     
     },
-
+    activeLayers(value){
+      console.log(value);
+    },
+    small_hexes(val){
+      console.log("small_hexes",val);
+    }
   },
   data () {
     return {
@@ -123,9 +146,26 @@ export default {
         686.5, 1092.0, 1720.0, 2734.8, 4956.0, 5000000.0
       ],
       zoomBorder: 14,
+      activeLayers: [],
+      bigHexBins: [27, 379, 1900, 6627, 11525, 17106, 23040, 26530, 43127],
+      smallHexBins: [5, 22, 360, 1597, 2661, 3805, 4739, 5333, 11000],
+      sportHexBins: [0,168980, 229640, 267822, 292472, 361570, 481407, 680220, 880601, 1825083, 2375773, 5000000],
     };
   },
   methods: {
+    showInformation(facility){
+      console.log(facility.id);
+      this.$store.dispatch('getFacilityReport', facility)
+    },
+    overlayadd: function(overlay){
+      this.activeLayers.push(overlay)
+      this.update(this.$refs.map.mapObject.getBounds())
+    },
+    overlayremove: function(overlay){
+      this.activeLayers.splice(this.activeLayers.indexOf(overlay),1)
+      this.update(this.$refs.map.mapObject.getBounds())
+
+    },
     getRadius: function (availability) {
       if (availability === 4) return 500;
       if (availability === 3) return 1000;
@@ -152,20 +192,31 @@ export default {
       return square > this.greenSquareWeights[0]
     },
     update: function (bounds) {
+      console.log("update on zoom");
       this.bounds = bounds;
-      this.$store.dispatch("getSmallHexes", {tiles: this.bbox2tiles(this.boundsToBbox(bounds), 13)})
-      this.$store.dispatch(
+      let tiles = this.bbox2tiles(this.boundsToBbox(bounds), this.getZoomForTiles())
+      if (this.activeLayers.find(layer => layer.name === "Спортивные объекты")) {
+        this.$store.dispatch(
           "getFacilitiesByTiles",
           {
-            tiles: this.bbox2tiles(this.boundsToBbox(bounds), this.getZoomForTiles()),
+            tiles,
             facilityFilter: this.$store.getters.facilityFilter
           }
-      )
+        )
+      }
+      if (!this.isBigHexes && this.activeLayers.find(layer => layer.name === "Плотность населения")) {
+        this.$store.dispatch("getDensitySmallHexes", {tiles})
+      }  
+      if (this.activeLayers.find(layer => layer.name === "Плотность спортивных объектов")) {
+        this.$store.dispatch("getSportSmallHexes", {tiles})
+      }  
+      if (this.activeLayers.find(layer => layer.name === "Пересечение плотностей")) {
+        this.$store.dispatch("getSportIntersectionSmallHexes", {tiles})
+      }      
     },
     onZoom: function (zoom) {
       if (this.isBigHexes && zoom >= 14) {
         this.isBigHexes = false;
-        // this.$store.dispatch("getSmallHexes", {bbox: this.boundsToBbox(this.bounds)});
       } else if (!this.isBigHexes && zoom < 14) {
         this.isBigHexes = true;
       }
@@ -235,12 +286,16 @@ export default {
     //       {tiles: this.bbox2tiles([55.729188403516886, 37.54363059997559, 55.77324203759852, 37.693748474121094], 13)}
     //   )
     // }
-    // if (!this.$store.getters.big_hexes.length) {
-    //   this.$store.dispatch("getBigHexes");
-    // }
-    this.update(this.$refs.map.mapObject.getBounds())
+    if (!this.$store.getters.big_hexes.length) {
+      this.$store.dispatch("getDensityBigHexes");
+    }
+
+    this.$nextTick(() => {
+      this.update(this.$refs.map.mapObject.getBounds())
+    })
   }
 }
+
 </script>
 
 <style >
@@ -252,5 +307,22 @@ export default {
   filter: hue-rotate(265deg);
   margin-left: -12px;
   margin-top: -41px;
+}
+.leaflet-control-layers{
+  border-radius: 20px !important;
+}
+.leaflet-control-layers-overlays{
+  padding: 5px;
+}
+.leaflet-control-zoom{
+  border: 0px !important;
+}
+.leaflet-control-zoom-in{
+  border-top-left-radius: 20px !important;
+  border-top-right-radius: 20px !important;
+}
+.leaflet-control-zoom-out{
+  border-bottom-left-radius: 20px !important;
+  border-bottom-right-radius: 20px !important;
 }
 </style>

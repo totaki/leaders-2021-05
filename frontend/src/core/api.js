@@ -31,10 +31,11 @@ const getAreaTypes = () => api.get(`/sport-area-types`)
 const getSportTypes = () => api.get(`/sport-types`)
 const getFacilityReport = (id) => api.get(`/facilities/${id}/report`)
 
-const getBigHexes = () => api.get(`/density/big-hex?limit=3500`)
+const getDensityBigHexes = () => api.get(`/density/big-hex?limit=3500`)
 
-// const getSmallHexes = (bbox) => api.get(`/density/small-hex?in_bbox=${bbox.join()}&limit=1500`)
-const getSmallHexes = (zoom, x, y) => api.get(`/density/small-hex?tile=${zoom}/${x}/${y}&limit=1500`)
+const getDensitySmallHexes = (zoom, x, y) => api.get(`/density/small-hex?tile=${zoom}/${x}/${y}&limit=1500`)
+const getSportSmallHexes = (zoom, x, y) => api.get(`/sport-density/small-hex?tile=${zoom}/${x}/${y}&limit=1500`)
+const getSportIntersectionSmallHexes = (zoom, x, y) => api.get(`/sport-density/small-hex-intersections?tile=${zoom}/${x}/${y}&limit=1500`)
 
 export default {
   getDepartments,
@@ -43,6 +44,8 @@ export default {
   getAreaTypes,
   getSportTypes,
   getFacilityReport,
-  getBigHexes,
-  getSmallHexes,
+  getDensityBigHexes,
+  getDensitySmallHexes,
+  getSportSmallHexes,
+  getSportIntersectionSmallHexes,
 }
