@@ -25,14 +25,14 @@
           :interactive="false"
       />
     </l-layer-group>
-    <hexes-layer-group name="Плотность населения" :hexes="hexes" color="green" :bins="isBigHexes? bigHexBins : smallHexBins" opacityBy="population" layerType="overlay">
+    <hexes-layer-group name="Плотность населения" :hexes="hexes" color="red" :bins="isBigHexes? bigHexBins : smallHexBins" opacityBy="population" layerType="overlay">
       <template v-slot:popup="{prop}">
         <p>Population: {{Math.round(prop.population)}}</p>
         <p>Density: {{ isBigHexes? Math.round( prop.population * 0.85) : Math.round( prop.population * 0.1)}}</p>
       </template>
     </hexes-layer-group>
 
-    <hexes-layer-group name="Плотность спортивных объектов" :hexes="small_hexes" color="red" :bins="sportHexBins" :isBigHexes="false" opacityBy="square" layerType="overlay">
+    <hexes-layer-group name="Плотность спортивных объектов" :hexes="small_hexes" color="green" :bins="sportHexBins" :isBigHexes="false" opacityBy="square" layerType="overlay">
       <template v-slot:popup="{prop}">
         <p>Areas count: {{prop.areas_count }}</p>
         <p>Square: {{ prop.square }}</p>
