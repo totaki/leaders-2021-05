@@ -5,7 +5,7 @@
           :lat-lngs="poly.polygon.coordinates[0]"
           :key="poly.id"
           :fillColor="color"
-          :fillOpacity="poly[opacityBy]/5000000 * 0.7"
+          :fillOpacity="getOpacity(poly[opacityBy],bins)"
           :weight="0">
           <l-popup>
             <slot name="popup" v-bind:prop="poly"></slot>
