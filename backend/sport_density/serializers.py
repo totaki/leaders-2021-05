@@ -10,7 +10,7 @@ class HexIntersectionsSerializer(ModelSerializer):
 
     class Meta:
         model = HexIntersections
-        fields = ['polygon', 'square', 'areas_count']
+        fields = ['id', 'polygon', 'square', 'areas_count']
 
 
 class BaseHexIntersectionsSerializer(ModelSerializer):
