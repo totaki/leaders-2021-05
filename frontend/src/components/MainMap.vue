@@ -27,14 +27,14 @@
           :interactive="false"
       />
     </l-layer-group>
-    <hexes-layer-group name="Плотность населения" :hexes="hexes" color="red" :bins="isBigHexes? bigHexBins : smallHexBins" opacityBy="population" layerType="overlay">
+    <hexes-layer-group name="Плотность населения" :hexes="hexes" :colormap="[{index: 0, rgb:[255,0,0]},{index: 0.5, rgb: [255,125,125]},{index: 1, rgb: [255,255,255]}]" color="red" :bins="isBigHexes? bigHexBins : smallHexBins" opacityBy="population" layerType="overlay">
       <template v-slot:popup="{prop}">
         <p>Population: {{Math.round(prop.population)}}</p>
         <p>Density: {{ isBigHexes? Math.round( prop.population * 0.85) : Math.round( prop.population * 0.1)}}</p>
       </template>
     </hexes-layer-group>
 
-    <hexes-layer-group name="Плотность спортивных объектов" :hexes="hexes" color="green" :bins="isBigHexes? sportBigHexBins : sportHexBins"  opacityBy="square" layerType="overlay">
+    <hexes-layer-group name="Плотность спортивных объектов" :hexes="hexes" colormap="greens" color="green" :bins="isBigHexes? sportBigHexBins : sportHexBins"  opacityBy="square" layerType="overlay">
       <template v-slot:popup="{prop}">
         <p>Areas count: {{prop.areas_count }}</p>
         <p>Square: {{ prop.square }}</p>
@@ -84,9 +84,6 @@ export default {
       if (this.$store.getters.facilities.length > 500) return 0.12;
       return 0.3
     },
-    small_hexes(){
-      return this.$store.getters.small_hexes;
-    },
     hexes() {
       if (this.isBigHexes) return this.$store.getters.big_hexes;
       return this.$store.getters.small_hexes;
@@ -120,12 +117,6 @@ export default {
       this.$refs.circles.mapObject.addLayer(this.markers)
       this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')
     },
-    activeLayers(value){
-      console.log(value);
-    },
-    small_hexes(val){
-      console.log("small_hexes",val);
-    }
   },
   data () {
     return {
@@ -154,7 +145,7 @@ export default {
       bigHexBins: [27, 379, 1900, 6627, 11525, 17106, 23040, 26530, 43127],
       smallHexBins: [5, 22, 360, 1597, 2661, 3805, 4739, 5333, 11000],
       sportHexBins: [124, 6866, 26184, 64665, 94201, 118899, 140914, 167049, 192377, 238084, 300000],
-      sportBigHexBins: [144,6520,27080,64477,95195,119351,142339,167483,193332,238483,445059]
+      sportBigHexBins: [144,6520,27080,64477,95195,119351,142339,167483,193332,238483,445060]
     };
   },
   methods: {
@@ -168,6 +159,15 @@ export default {
     },
     overlayremove: function(overlay){
       this.activeLayers.splice(this.activeLayers.indexOf(overlay),1)
+      if (overlay.name === "Плотность населения" || overlay.name === "Плотность спортивных объектов") {
+        if (this.isBigHexes) {
+          this.$store.commit("CLEAR_BIG_HEXES")
+        } else {
+          this.$store.commit("CLEAR_SMALL_HEXES")
+        }
+      }
+      this.$store.commit("CLEAR_LAST_DENSITY_TILES")
+      
       this.update(this.$refs.map.mapObject.getBounds())
 
     },
@@ -197,7 +197,6 @@ export default {
       return square > this.greenSquareWeights[0]
     },
     update: function (bounds) {
-      console.log("update on zoom");
       this.bounds = bounds;
       let tiles = this.bbox2tiles(this.boundsToBbox(bounds), this.getZoomForTiles())
       if (this.activeLayers.find(layer => layer.name === "Спортивные объекты")) {
@@ -227,9 +226,6 @@ export default {
           this.$store.dispatch("getSportSmallHexes", {tiles})
         }
       }  
-      if (this.activeLayers.find(layer => layer.name === "Пересечение плотностей")) {
-        this.$store.dispatch("getSportIntersectionSmallHexes", {tiles})
-      }
     },
     onZoom: function (zoom) {
       if (this.isBigHexes && zoom >= 14) {
