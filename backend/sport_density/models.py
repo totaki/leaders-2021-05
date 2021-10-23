@@ -5,7 +5,7 @@ from facilities.models import Facility
 
 class DataHexSmall(models.Model):
     polygon = models.PolygonField()
-    flats = models.PositiveIntegerField()
+    population = models.PositiveIntegerField()
     facilities = models.ManyToManyField(Facility, related_name='hexes')
 
     class Meta:
@@ -14,7 +14,7 @@ class DataHexSmall(models.Model):
 
 class DataHexBig(models.Model):
     polygon = models.PolygonField()
-    flats = models.PositiveIntegerField()
+    population = models.PositiveIntegerField()
     facilities = models.ManyToManyField(Facility, related_name='big_hexes')
 
     class Meta:

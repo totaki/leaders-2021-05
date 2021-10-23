@@ -100,8 +100,8 @@ def read_data_hex_csv(filename) -> Tuple[int, str, List[int], int]:
 
 
 def load_data_hexes(model, filename):
-    for id_, polygon, facilities, flats in read_data_hex_csv(filename):
-        intersection = model.objects.create(id=id_, polygon=polygon, flats=flats)
+    for id_, polygon, facilities, population in read_data_hex_csv(filename):
+        intersection = model.objects.create(id=id_, polygon=polygon, population=population)
         intersection.facilities.add(*facilities)
 
 

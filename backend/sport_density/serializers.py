@@ -7,7 +7,7 @@ from sport_density.models import DataHexSmall, DataHexBig
 class BaseDataHexSmallSerializer(ModelSerializer):
     class Meta:
         model = DataHexSmall
-        fields = ['id', 'polygon', 'flats']
+        fields = ['id', 'polygon', 'population']
 
 
 class DataHexSmallSerializer(ModelSerializer):
@@ -16,7 +16,7 @@ class DataHexSmallSerializer(ModelSerializer):
 
     class Meta:
         model = DataHexSmall
-        fields = ['id', 'polygon', 'flats', 'square', 'areas_count']
+        fields = ['id', 'polygon', 'population', 'square', 'areas_count']
 
 
 class DetailDataHexSmallSerializer(DataHexSmallSerializer):
@@ -24,13 +24,13 @@ class DetailDataHexSmallSerializer(DataHexSmallSerializer):
 
     class Meta:
         model = DataHexSmall
-        fields = ['id', 'polygon', 'flats', 'square', 'areas_count', 'square_by_person']
+        fields = ['id', 'polygon', 'population', 'square', 'areas_count', 'square_by_person']
 
 
 class BaseDataHexBigSerializer(ModelSerializer):
     class Meta:
         model = DataHexBig
-        fields = ['id', 'polygon', 'flats']
+        fields = ['id', 'polygon', 'population']
 
 
 class DataHexBigSerializer(ModelSerializer):
@@ -39,7 +39,7 @@ class DataHexBigSerializer(ModelSerializer):
 
     class Meta:
         model = DataHexBig
-        fields = ['id', 'polygon', 'flats', 'square', 'areas_count']
+        fields = ['id', 'polygon', 'population', 'square', 'areas_count']
 
 
 class DetailDataHexBigSerializer(DataHexBigSerializer):
@@ -47,7 +47,7 @@ class DetailDataHexBigSerializer(DataHexBigSerializer):
 
     class Meta:
         model = DataHexBig
-        fields = ['id', 'polygon', 'flats', 'square', 'areas_count', 'square_by_person']
+        fields = ['id', 'polygon', 'population', 'square', 'areas_count', 'square_by_person']
 
 
 class BaseHexIntersectionsSerializer(ModelSerializer):

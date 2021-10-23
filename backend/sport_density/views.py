@@ -1,6 +1,6 @@
 from abc import ABC
 
-from django.db.models import Sum, Count, F, Case, When
+from django.db.models import Sum, Count, F
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -31,16 +31,15 @@ class BaseHexViewSet(ReadOnlyModelViewSet, ABC):
                 areas_count=Count("facilities__areas"),
             )
         if self.action == "population_density":
-            return self.queryset.filter(flats__gt=0)
+            return self.queryset.filter(population__gt=0)
         if self.action == "list":
-            return self.queryset.annotate(
-                square=Sum("facilities__areas__square"),
-                areas_count=Count("facilities__areas"),
-            ).annotate(
-                square_by_person=Case(
-                    When(flats=0, then=None),
-                    default=F("square") * 4.5 / F("flats"),
+            return (
+                self.queryset.filter(population__gt=0)
+                .annotate(
+                    square=Sum("facilities__areas__square"),
+                    areas_count=Count("facilities__areas"),
                 )
+                .annotate(square_by_person=F("square") / F("population"))
             )
         return self.queryset
 
