@@ -8,8 +8,10 @@
     @update:zoom="onZoom"
     @overlayadd="overlayadd"
     @overlayremove="overlayremove"
+    :options="{zoomControl: false}"
   >
-    <l-control-layers ref="control" position="bottomleft"></l-control-layers>
+    <l-control-zoom position="bottomright"></l-control-zoom>
+    <l-control-layers ref="control" position="topright"></l-control-layers>
     <l-tile-layer ref="tileLayer" :url="url" :attribution="attribution"></l-tile-layer>
     <l-layer-group ref="circles" :visible='false' name="Спортивные объекты" layer-type="overlay">
       <l-circle
@@ -32,7 +34,7 @@
       </template>
     </hexes-layer-group>
 
-    <hexes-layer-group name="Плотность спортивных объектов" :hexes="small_hexes" color="green" :bins="sportHexBins" :isBigHexes="false" opacityBy="square" layerType="overlay">
+    <hexes-layer-group name="Плотность спортивных объектов" :hexes="hexes" color="green" :bins="sportHexBins"  opacityBy="square" layerType="overlay">
       <template v-slot:popup="{prop}">
         <p>Areas count: {{prop.areas_count }}</p>
         <p>Square: {{ prop.square }}</p>
@@ -47,7 +49,7 @@
 </template>
 
 <script>
-import {LMap, LTileLayer, LMarker, LControlLayers, LLayerGroup,} from 'vue2-leaflet';
+import {LMap, LTileLayer, LMarker, LControlLayers, LLayerGroup,LControlZoom} from 'vue2-leaflet';
 import L from "leaflet";
 import icon from "../icon.png";
 import "leaflet.markercluster/dist/leaflet.markercluster-src"
@@ -59,6 +61,7 @@ export default {
     LTileLayer,
     LMarker,
     LControlLayers,
+    LControlZoom,
     LLayerGroup,
     HexesLayerGroup,
   },
@@ -111,6 +114,7 @@ export default {
       fac.forEach(el => {
         let marker = L.marker(L.latLng(el.placement.coordinates));
         marker.on('click', () => this.showInformation(el))
+        marker.bindTooltip(el.name)
         this.markers.addLayer(marker)
       });
       this.$refs.circles.mapObject.addLayer(this.markers)
@@ -128,7 +132,7 @@ export default {
       markers: L.markerClusterGroup({ chunkedLoading: true, disableClusteringAtZoom: 14, removeOutsideVisibleBounds: true}),
       url: 'http://tile2.maps.2gis.com/tiles?x={x}&y={y}&z={z}',
       attribution:
-        '&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+        '&copy; <a target="_blank" href="http://law.2gis.ru/api-rules/">2GIS</a> contributors',
       startZoom: 14,
       zoom: 14,
       center: [55.751244, 37.618423],
@@ -204,11 +208,23 @@ export default {
           }
         )
       }
-      if (!this.isBigHexes && this.activeLayers.find(layer => layer.name === "Плотность населения")) {
-        this.$store.dispatch("getDensitySmallHexes", {tiles})
+      if ( this.activeLayers.find(layer => layer.name === "Плотность населения")) {
+        if (this.isBigHexes) {
+          if (!this.$store.getters.big_hexes.length) {
+            this.$store.dispatch("getDensityBigHexes");
+          }
+        } else {
+          this.$store.dispatch("getDensitySmallHexes", {tiles})
+        }
       }  
       if (this.activeLayers.find(layer => layer.name === "Плотность спортивных объектов")) {
-        this.$store.dispatch("getSportSmallHexes", {tiles})
+        if (this.isBigHexes) {
+          if (!this.$store.getters.big_hexes.length) {
+            this.$store.dispatch("getSportBigHexes");
+          }
+        } else {
+          this.$store.dispatch("getSportSmallHexes", {tiles})
+        }
       }  
       if (this.activeLayers.find(layer => layer.name === "Пересечение плотностей")) {
         this.$store.dispatch("getSportIntersectionSmallHexes", {tiles})
@@ -279,17 +295,6 @@ export default {
     },
   },
   mounted() {
-    // initial hexes
-    // if (!this.$store.getters.small_hexes.length) {
-    //   this.$store.dispatch(
-    //       "getSmallHexes",
-    //       {tiles: this.bbox2tiles([55.729188403516886, 37.54363059997559, 55.77324203759852, 37.693748474121094], 13)}
-    //   )
-    // }
-    if (!this.$store.getters.big_hexes.length) {
-      this.$store.dispatch("getDensityBigHexes");
-    }
-
     this.$nextTick(() => {
       this.update(this.$refs.map.mapObject.getBounds())
     })
@@ -309,19 +314,27 @@ export default {
   margin-top: -41px;
 }
 .leaflet-control-layers{
+    margin-top: 32px !important;
+    margin-right: 20px !important;
   border-radius: 20px !important;
 }
 .leaflet-control-layers-overlays{
   padding: 5px;
 }
 .leaflet-control-zoom{
+  margin-bottom: 20px !important;
+  margin-right: 20px !important;
   border: 0px !important;
 }
 .leaflet-control-zoom-in{
+  width: 40px !important;
+  height: 40px !important;
   border-top-left-radius: 20px !important;
   border-top-right-radius: 20px !important;
 }
 .leaflet-control-zoom-out{
+  width: 40px !important;
+  height: 40px !important;
   border-bottom-left-radius: 20px !important;
   border-bottom-right-radius: 20px !important;
 }

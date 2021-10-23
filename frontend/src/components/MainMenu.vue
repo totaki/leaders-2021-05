@@ -99,18 +99,49 @@
         </v-list>
       </v-navigation-drawer>
       <v-navigation-drawer  hide-overlay stateless  v-model='infoDrawer' app>
-        <v-card>
+        <v-card v-if="facilityReport" elevation="0">
+          <v-card-actions >
+            <v-list-item @click="closeInfo"><v-icon left>mdi-chevron-left</v-icon> Back</v-list-item>
+          </v-card-actions>
+          <v-divider/>
           <v-card-title>
-            <div class="text-subtitle-2">
+            <div >
               {{facilityReport.name}}
+            </div>
+            <div class="text-caption">
+              {{availabilities.find( el => facilityReport.availability === el.id).name}}
             </div>
           </v-card-title>
           <v-card-subtitle>
-            {{facilityReport.department.name}}
+            <div class="text-subtitle-1">
+              {{facilityReport.department.name}}
+            </div>
           </v-card-subtitle>
-          <v-card-actions>
-            <v-btn @click="closeInfo">&lt;</v-btn>
-          </v-card-actions>
+          <v-divider/>
+          <v-card-text>
+              <v-expansion-panels multiple flat accordion>
+                <v-expansion-panel
+                  v-for="area in facilityReport.areas"
+                  :key="area.id"
+                >
+                  <v-expansion-panel-header>
+                    {{area.name}}
+                  </v-expansion-panel-header>
+                  <v-expansion-panel-content>
+                    <div>
+                      <strong>Square:</strong> {{area.square}} km
+                    </div>
+                    <div >
+                      <strong>Area type:</strong> {{areaTypes.find(type => type.id === area.type).name}}
+                    </div>
+                    <div>
+                      <strong>Sports:</strong> {{sportTypes.filter( type => area.sports.find(el => el === type.id)).map(el=> el.name).join(', ')}}
+                    </div>
+                  </v-expansion-panel-content>
+                </v-expansion-panel>
+              </v-expansion-panels>
+          </v-card-text>
+
         </v-card>
       </v-navigation-drawer>
        </v-layout >

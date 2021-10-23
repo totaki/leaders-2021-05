@@ -44,8 +44,8 @@ export default {
                 opacity += 0.1
                 if (population < val) break;
             }
-            return opacity * 0.7
-    },
+            return (opacity * 0.7) < 0.2 ? 0.2 : opacity * 0.7
+        },
     },
 }
 </script>

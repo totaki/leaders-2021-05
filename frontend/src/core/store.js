@@ -10,8 +10,8 @@ const state = {
   facilities: [],
   big_hexes: [],
   small_hexes: [],
-  areaTypes: [],
-  sportTypes: [],
+  areaTypes: [{id:0,name:''}],
+  sportTypes: [{id:0,name:''}],
   availabilities: [
     {id: 4, name: "Шаговая доступность"},
     {id: 3, name: "Районная доступность"},
@@ -94,6 +94,9 @@ const actions = {
   },
   getDensityBigHexes: ({dispatch}) => {
     dispatch('getBigHexes',{api: api.getDensityBigHexes})
+  },
+  getSportBigHexes: ({dispatch}) => {
+    dispatch('getBigHexes',{api: api.getSportBigHexes})
   },
   getBigHexes: ({ commit }, {api} ) => {
     api()
