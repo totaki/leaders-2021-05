@@ -6,7 +6,10 @@
           :key="poly.id"
           :fillColor="getColorMap(poly[opacityBy],bins)"
           :fillOpacity="0.7"
-          :weight="0">
+          :weight="1"
+          :color="getSelected.find(hex => hex===poly.id)? 'red' : ''"
+          @click="canSelect && selectHex(poly)"
+          >
           <l-popup>
             <slot name="popup" v-bind:prop="poly"></slot>
           </l-popup>
@@ -18,24 +21,35 @@ import { LPolygon, LLayerGroup, LPopup  } from 'vue2-leaflet';
 import Colormap from 'colormap';
 
 export default {
-    props:['hexes','isBigHexes','name','layerType','options','opacityBy','bins','color','colormap'],
+    props:{
+        hexes:{},
+        isBigHexes:{},
+        name:{},
+        canSelect:{default: false,type: Boolean},
+        'layer-type': {default: 'base',type: String},
+        options:{},
+        opacityBy:{},
+        bins:{},
+        color:{},
+        colormap:{},
+    },
     components: {
         LPolygon,
         LLayerGroup,
         LPopup
     },
     computed:{
-        console: () => console
+        console: () => console,
+        getSelected: function() {return this.$store.getters.selectedHexes}
     },
     created() {
-        console.log(this.hexes);
     },
     watch: {
-
+        
     },
     data() {
         return {
-            
+            selected: []
         }
     },
     methods: {
@@ -49,6 +63,9 @@ export default {
 
             return colorIdx === -1? colors[colors.length - 1] : colors[colorIdx]
         },
+        selectHex(hex){
+            this.$store.dispatch("getSelectedHexes",hex.id)
+        }
     },
 }
 </script>

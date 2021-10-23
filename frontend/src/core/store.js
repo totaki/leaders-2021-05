@@ -44,7 +44,8 @@ const state = {
   lastTilesList: new Set(),
   lastFacilityFilter: null,
   newFacilities: [],
-  lastDensityTiles: []
+  lastDensityTiles: [],
+  selectedHexes: []
 }
 
 const getters = {
@@ -59,6 +60,7 @@ const getters = {
   facilityFilter: state => state.facilityFilter,
   facilityReport: state => state.facilityReport,
   newFacilities: state => state.newFacilities,
+  selectedHexes: state => state.selectedHexes,
 }
 
 const actions = {
@@ -91,6 +93,9 @@ const actions = {
       .then(r => {
         commit("SET_FACILITIES", r.data.results)
       })
+  },
+  getSelectedHexes: ({commit}, hex ) => {
+    commit("SET_SELECTED_HEXES", hex)
   },
   getUnitingBigHexes: ({dispatch}) => {
     dispatch('getBigHexes',{api: api.getUnitingBigHexes})
@@ -221,6 +226,16 @@ const mutations = {
   CLEAR_LAST_DENSITY_TILES: (state) => {
     state.lastDensityTiles = []
   },
+  SET_SELECTED_HEXES: (state, item) => {
+    if (state.selectedHexes.find( hex=>hex === item)) {
+      state.selectedHexes.splice(state.selectedHexes.findIndex(hex => hex === item),1)
+      return
+    }
+    state.selectedHexes.push(item)
+  },
+  CLEAR_SELECTED_HEXES: (state) => {
+    state.selectedHexes = []
+  }
 }
 
 export default new Vuex.Store({
