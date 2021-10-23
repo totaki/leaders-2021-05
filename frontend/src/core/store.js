@@ -168,8 +168,14 @@ const mutations = {
   SET_BIG_HEXES: (state, items) => {
     state.big_hexes = items
   },
+  CLEAR_BIG_HEXES: (state) => {
+    state.big_hexes = []
+  },
   SET_SMALL_HEXES: (state, items) => {
     state.small_hexes = items
+  },
+  CLEAR_SMALL_HEXES: (state) => {
+    state.small_hexes = []
   },
   SET_AREA_TYPES: (state, items) => {
     state.areaTypes = items
@@ -205,6 +211,9 @@ const mutations = {
   },
   SET_LAST_DENSITY_TILES: (state, items) => {
     state.lastDensityTiles = items
+  },
+  CLEAR_LAST_DENSITY_TILES: (state) => {
+    state.lastDensityTiles = []
   },
 }
 

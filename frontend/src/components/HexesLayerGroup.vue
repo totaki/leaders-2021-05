@@ -1,23 +1,24 @@
 <template>
     <l-layer-group :visible='false' :name="name" :layer-type="layerType" :options='options'>
-      <l-polygon
+        <l-polygon
           v-for="poly in hexes"
           :lat-lngs="poly.polygon.coordinates[0]"
           :key="poly.id"
-          :fillColor="color"
-          :fillOpacity="getOpacity(poly[opacityBy],bins)"
+          :fillColor="getColorMap(poly[opacityBy],bins)"
+          :fillOpacity="0.7"
           :weight="0">
           <l-popup>
             <slot name="popup" v-bind:prop="poly"></slot>
           </l-popup>
-      </l-polygon>
+        </l-polygon>
     </l-layer-group>
 </template>
 <script>
 import { LPolygon, LLayerGroup, LPopup  } from 'vue2-leaflet';
+import Colormap from 'colormap';
 
 export default {
-    props:['hexes','isBigHexes','name','layerType','options','opacityBy','bins','color'],
+    props:['hexes','isBigHexes','name','layerType','options','opacityBy','bins','color','colormap'],
     components: {
         LPolygon,
         LLayerGroup,
@@ -38,13 +39,15 @@ export default {
         }
     },
     methods: {
-        getOpacity: function (population,bins) {
-            let opacity = 0;
-            for (const val of bins) {
-                opacity += 1 / bins.length
-                if (population < val) break;
-            }
-            return (opacity * 0.7) < 0.2 ? 0.2 : opacity * 0.7
+        getColorMap: function (opacityBy,bins) {
+            let colors = Colormap({
+                colormap: this.colormap,
+                nshades: bins.length,
+                format: 'hex',
+                alpha: 1}).reverse();
+            let colorIdx = bins.findIndex( bin => opacityBy < bin)
+
+            return colorIdx === -1? colors[colors.length - 1] : colors[colorIdx]
         },
     },
 }
