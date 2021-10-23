@@ -31,10 +31,14 @@ const getAreaTypes = () => api.get(`/sport-area-types`)
 const getSportTypes = () => api.get(`/sport-types`)
 const getFacilityReport = (id) => api.get(`/facilities/${id}/report`)
 
-const getBigHexes = () => api.get(`/density/big-hex?limit=3500`)
+const getPopulationBigHexes = () => api.get(`/data-hex/big-hex/population-density?limit=3500`)
+const getSportBigHexes = () => api.get(`/data-hex/big-hex/sport-density?limit=4000`)
+const getUnitingBigHexes = () => api.get(`/data-hex/big-hex?limit=4000`)
 
-// const getSmallHexes = (bbox) => api.get(`/density/small-hex?in_bbox=${bbox.join()}&limit=1500`)
-const getSmallHexes = (zoom, x, y) => api.get(`/density/small-hex?tile=${zoom}/${x}/${y}&limit=1500`)
+const getUnitingSmallHexes = (zoom, x, y) => api.get(`/data-hex/small-hex?tile=${zoom}/${x}/${y}&limit=1500`)
+const getPopulationSmallHexes = (zoom, x, y) => api.get(`/data-hex/small-hex/population-density?tile=${zoom}/${x}/${y}&limit=1500`)
+const getSportSmallHexes = (zoom, x, y) => api.get(`/data-hex/small-hex/sport-density?tile=${zoom}/${x}/${y}&limit=1500`)
+const getSportIntersectionSmallHexes = (zoom, x, y) => api.get(`/sport-density/small-hex-intersections?tile=${zoom}/${x}/${y}&limit=1500`)
 
 export default {
   getDepartments,
@@ -43,6 +47,11 @@ export default {
   getAreaTypes,
   getSportTypes,
   getFacilityReport,
-  getBigHexes,
-  getSmallHexes,
+  getPopulationBigHexes,
+  getSportBigHexes,
+  getUnitingBigHexes,
+  getUnitingSmallHexes,
+  getPopulationSmallHexes,
+  getSportSmallHexes,
+  getSportIntersectionSmallHexes,
 }

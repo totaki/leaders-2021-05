@@ -6,37 +6,63 @@
     :center="center"
     @update:bounds="update"
     @update:zoom="onZoom"
+    @overlayadd="overlayadd"
+    @overlayremove="overlayremove"
+    @baselayerchange="baselayerchange"
+    :options="{zoomControl: false}"
   >
-    <l-control-layers position="bottomleft"></l-control-layers>
+    <l-control-zoom position="bottomright"></l-control-zoom>
+    <l-control-layers ref="control" position="topright"></l-control-layers>
     <l-tile-layer ref="tileLayer" :url="url" :attribution="attribution"></l-tile-layer>
-    <l-layer-group ref="circles" :visible='false' name="Плотность спортивных объектов" layer-type="base">
-      <l-circle
-          v-for="item in facilities"
-          :key="'c' + item.id"
-          :lat-lng="item.placement.coordinates"
-          :radius="getRadius(item.availability)"
-          :fillColor="isSquareCircleGreen(item.square) ? 'green': 'red'"
-          :weight="0"
-          :color="isSquareCircleGreen(item.square) ? 'green': 'red'"
-          :opacity="0.45"
-          :fillOpacity="getSquareCircleOpacity(item.square)"
-          :interactive="false"
-      />
+    <l-layer-group ref="circles" :visible='false' :name="layerNames[0]" layer-type="overlay">
     </l-layer-group>
-    <l-layer-group ref="hexes" :visible='false' name="Плотность населения" layer-type="base">
-      <l-polygon
-          v-for="poly in hexes"
-          :lat-lngs="poly.polygon.coordinates[0]"
-          :key="poly.id"
-          fillColor="red"
-          :fillOpacity="getOpacity(poly.population)"
-          :weight="0">
-          <l-popup >
-            <p>Population: {{Math.round(poly.population)}}</p>
-            <p>Density: {{ isBigHexes? Math.round( poly.population * 0.85) :Math.round( poly.population * 0.1)}}</p>
-          </l-popup>
-      </l-polygon>
-    </l-layer-group>
+    <l-layer-group
+      name='Отключено'
+      layer-type="base"
+      :visible='true'
+    ></l-layer-group>
+    <hexes-layer-group 
+      :name="layerNames[1]" 
+      :hexes="hexes" 
+      :colormap="[{index: 0, rgb:[255,0,0]},{index: 0.5, rgb: [255,125,125]},{index: 1, rgb: [255,255,255]}]" 
+      color="red" 
+      :bins="isBigHexes? populationBigHexBins : populationSmallHexBins" 
+      opacityBy="population" 
+      layerType="base"
+      >
+        <template v-slot:popup="{prop}">
+          <p>Population: {{Math.round(prop.population)}}</p>
+          <p>Density: {{ isBigHexes? Math.round( prop.population / 0.85) : Math.round( prop.population / 0.1)}}</p>
+        </template>
+    </hexes-layer-group>
+
+    <hexes-layer-group 
+      :name="layerNames[2]" 
+      :hexes="hexes" 
+      colormap="greens" 
+      color="green" 
+      :bins="isBigHexes? sportBigHexBins : sportSmallHexBins"  
+      opacityBy="square" 
+      layerType="base">
+        <template v-slot:popup="{prop}">
+          <p>Areas count: {{prop.areas_count }}</p>
+          <p>Square: {{ Math.round(prop.square) }}</p>
+        </template>
+    </hexes-layer-group>
+
+    <hexes-layer-group 
+      :name="layerNames[3]" 
+      :hexes="hexes" 
+      colormap="greens" 
+      color="green" :bins="isBigHexes? unitingBigHexBins : unitingSmallHexBins"  
+      opacityBy="square_by_person" 
+      layerType="base">
+      <template v-slot:popup="{prop}">
+        <p>Areas count: {{ prop.areas_count }}</p>
+        <p>Square: {{ Math.round(prop.square) }}</p>
+        <p>Square by person: {{ Math.round(prop.square_by_person) }}</p>
+      </template>
+    </hexes-layer-group>
 
     <l-marker v-if="selectedFacility" :lat-lng="selectedFacility.placement.coordinates" :icon="icon">
     </l-marker>
@@ -46,21 +72,24 @@
 </template>
 
 <script>
-import {LMap, LTileLayer, LMarker, LPolygon, LControlLayers, LLayerGroup, LPopup} from 'vue2-leaflet';
+import {LMap, LTileLayer, LMarker, LControlLayers, LLayerGroup,LControlZoom} from 'vue2-leaflet';
 import L from "leaflet";
 import icon from "../icon.png";
 import "leaflet.markercluster/dist/leaflet.markercluster-src"
+import HexesLayerGroup from './HexesLayerGroup.vue';
+
 export default {
   components: {
     LMap,
     LTileLayer,
     LMarker,
-    LPolygon,
     LControlLayers,
+    LControlZoom,
     LLayerGroup,
-    LPopup
+    HexesLayerGroup,
   },
   computed: {
+    console: ()=> console,
     facilities() {
       return this.$store.getters.newFacilities;
     },
@@ -104,24 +133,23 @@ export default {
       if (!fac.length) return;
       fac.forEach(el => {
         let marker = L.marker(L.latLng(el.placement.coordinates));
+        marker.on('click', () => this.showInformation(el))
+        marker.bindTooltip(el.name)
         this.markers.addLayer(marker)
       });
       this.$refs.circles.mapObject.addLayer(this.markers)
-      this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')     
+      this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')
     },
-
   },
   data () {
     return {
       markers: L.markerClusterGroup({ chunkedLoading: true, disableClusteringAtZoom: 14, removeOutsideVisibleBounds: true}),
-      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      url: 'http://tile2.maps.2gis.com/tiles?x={x}&y={y}&z={z}',
       attribution:
-        '&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+        '&copy; <a target="_blank" href="http://law.2gis.ru/api-rules/">2GIS</a> contributors',
       startZoom: 14,
       zoom: 14,
       center: [55.751244, 37.618423],
-      bigHexBins: [27, 379, 1900, 6627, 11525, 17106, 23040, 26530, 43127],
-      smallHexBins: [5, 22, 360, 1597, 2661, 3805, 4739, 5333, 11000],
       isBigHexes: false,
       bounds: null,
       icon: L.icon({
@@ -135,10 +163,42 @@ export default {
       greenSquareWeights: [
         686.5, 1092.0, 1720.0, 2734.8, 4956.0, 5000000.0
       ],
+      layerNames: ["Спортивные объекты","Плотность населения","Плотность спортивных объектов","Объединение населения и объектов"],
       zoomBorder: 14,
+      activeLayers: [],
+      baseLayer: null,
+      unitingBigHexBins: [4, 6, 9, 13, 18, 27, 45, 114, 681, 2928, 11948, 48660],
+      unitingSmallHexBins: [51, 81, 236, 3016, 8978, 22328, 34320, 43541, 54268, 63705, 100283, 111083],
+      populationBigHexBins: [27, 379, 1900, 6627, 11525, 17106, 23040, 26530, 43127],
+      populationSmallHexBins: [5, 22, 360, 1597, 2661, 3805, 4739, 5333, 11000],
+      sportSmallHexBins: [124, 6866, 26184, 64665, 94201, 118899, 140914, 167049, 192377, 238084, 300000],
+      sportBigHexBins: [144,6520,27080,64477,95195,119351,142339,167483,193332,238483,445060]
     };
   },
   methods: {
+    showInformation(facility){
+      console.log(facility.id);
+      this.$store.dispatch('getFacilityReport', facility)
+    },
+    baselayerchange: function(layer) {
+      this.baseLayer = layer
+      if (this.isBigHexes) {
+        this.$store.commit("CLEAR_BIG_HEXES")
+      } else {
+        this.$store.commit("CLEAR_SMALL_HEXES")
+      }
+      this.$store.commit("CLEAR_LAST_DENSITY_TILES")
+
+      this.update(this.$refs.map.mapObject.getBounds())
+    },
+    overlayadd: function(overlay){
+      this.activeLayers.push(overlay)
+      this.update(this.$refs.map.mapObject.getBounds())
+    },
+    overlayremove: function(overlay){
+      this.activeLayers.splice(this.activeLayers.indexOf(overlay),1)      
+      this.update(this.$refs.map.mapObject.getBounds())
+    },
     getRadius: function (availability) {
       if (availability === 4) return 500;
       if (availability === 3) return 1000;
@@ -166,19 +226,52 @@ export default {
     },
     update: function (bounds) {
       this.bounds = bounds;
-      this.$store.dispatch("getSmallHexes", {tiles: this.bbox2tiles(this.boundsToBbox(bounds), 13)})
-      this.$store.dispatch(
+      let tiles = this.bbox2tiles(this.boundsToBbox(bounds), this.getZoomForTiles())
+      if (this.activeLayers.find(layer => layer.name === this.layerNames[0])) {
+        this.$store.dispatch(
           "getFacilitiesByTiles",
           {
-            tiles: this.bbox2tiles(this.boundsToBbox(bounds), this.getZoomForTiles()),
+            tiles,
             facilityFilter: this.$store.getters.facilityFilter
           }
-      )
+        )
+      }
+
+      switch (this.baseLayer.name) {
+        case this.layerNames[1]:
+          if (this.isBigHexes) {
+            if (!this.$store.getters.big_hexes.length) {
+              this.$store.dispatch("getDensityBigHexes");
+            }
+          } else {
+            this.$store.dispatch("getDensitySmallHexes", {tiles})
+          }
+          break;
+        case this.layerNames[2]:
+          if (this.isBigHexes) {
+            if (!this.$store.getters.big_hexes.length) {
+              this.$store.dispatch("getSportBigHexes");
+            }
+          } else {
+            this.$store.dispatch("getSportSmallHexes", {tiles})
+          }
+          break;
+        case this.layerNames[3]:
+          if (this.isBigHexes) {
+            if (!this.$store.getters.big_hexes.length) {
+              this.$store.dispatch("getUnitingBigHexes");
+            }
+          } else {
+            this.$store.dispatch("getUnitingSmallHexes", {tiles})
+          }
+          break;
+        default:
+          break;
+      }  
     },
     onZoom: function (zoom) {
       if (this.isBigHexes && zoom >= 14) {
         this.isBigHexes = false;
-        // this.$store.dispatch("getSmallHexes", {bbox: this.boundsToBbox(this.bounds)});
       } else if (!this.isBigHexes && zoom < 14) {
         this.isBigHexes = true;
       }
@@ -241,18 +334,12 @@ export default {
     },
   },
   mounted() {
-    // initial hexes
-    if (!this.$store.getters.small_hexes.length) {
-      this.$store.dispatch(
-          "getSmallHexes",
-          {tiles: this.bbox2tiles([55.729188403516886, 37.54363059997559, 55.77324203759852, 37.693748474121094], 13)}
-      )
-    }
-    if (!this.$store.getters.big_hexes.length) {
-      this.$store.dispatch("getBigHexes");
-    }
-  },
+    this.$nextTick(() => {
+      this.update(this.$refs.map.mapObject.getBounds())
+    })
+  }
 }
+
 </script>
 
 <style >
@@ -264,5 +351,30 @@ export default {
   filter: hue-rotate(265deg);
   margin-left: -12px;
   margin-top: -41px;
+}
+.leaflet-control-layers{
+    margin-top: 32px !important;
+    margin-right: 20px !important;
+  border-radius: 20px !important;
+}
+.leaflet-control-layers-overlays{
+  padding: 5px;
+}
+.leaflet-control-zoom{
+  margin-bottom: 20px !important;
+  margin-right: 20px !important;
+  border: 0px !important;
+}
+.leaflet-control-zoom-in{
+  width: 40px !important;
+  height: 40px !important;
+  border-top-left-radius: 20px !important;
+  border-top-right-radius: 20px !important;
+}
+.leaflet-control-zoom-out{
+  width: 40px !important;
+  height: 40px !important;
+  border-bottom-left-radius: 20px !important;
+  border-bottom-right-radius: 20px !important;
 }
 </style>

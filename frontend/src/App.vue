@@ -1,7 +1,12 @@
 <template>
   <div id="app">
-    <MainMap/>
+    <v-app>
     <MainMenu/>
+
+      <v-main>
+        <MainMap/>
+      </v-main>  
+    </v-app>
   </div>
 </template>
 

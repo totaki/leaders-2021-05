@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'django_filters',
     'corsheaders',
     'facilities',
-    'density',
     'sport_density',
 ]
 
