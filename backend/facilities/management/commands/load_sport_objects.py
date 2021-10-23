@@ -1,12 +1,11 @@
 import csv
 import json
-from typing import Type
+from typing import Tuple, List
 
 from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.core.management.base import BaseCommand
 
-from density.models import PopulationHex, PopulationHexBig, PopulationHexSmall
 from facilities.models import (
     Facility,
     Department,
@@ -14,7 +13,7 @@ from facilities.models import (
     SportsAreaType,
     SportType,
 )
-from sport_density.models import HexIntersections, BigHexIntersections
+from sport_density.models import DataHexSmall, DataHexBig
 
 
 def load_zone_types():
@@ -91,26 +90,19 @@ def load_sports_areas():
         SportsArea.objects.bulk_create(areas)
 
 
-def load_hex(model: Type[PopulationHex], filename: str):
-    with open(f"{settings.BASE_DIR}/data/{filename}", newline="") as file:
-        reader = csv.reader(file, quotechar='"')
-        next(reader, None)
-        hexes = []
-        for row in reader:
-            hexes.append(model(polygon=row[1], population=row[2]))
-        model.objects.bulk_create(hexes)
-
-
-def load_hex_intersections(model, filename):
+def read_data_hex_csv(filename) -> Tuple[int, str, List[int], int]:
     with open(f"{settings.BASE_DIR}/data/{filename}", newline="") as file:
         reader = csv.reader(file, quotechar='"')
         next(reader, None)
 
         for row in reader:
-            intersection = model.objects.create(polygon=row[1])
+            yield int(row[0]), row[1], json.loads(row[2]), int(float(row[3]))
 
-            facilities = json.loads(row[2])
-            intersection.facilities.add(*facilities)
+
+def load_data_hexes(model, filename):
+    for id_, polygon, facilities, flats in read_data_hex_csv(filename):
+        intersection = model.objects.create(id=id_, polygon=polygon, flats=flats)
+        intersection.facilities.add(*facilities)
 
 
 def clear_tables():
@@ -119,10 +111,8 @@ def clear_tables():
     Department.objects.all().delete()
     Facility.objects.all().delete()
     SportsArea.objects.all().delete()
-    PopulationHexBig.objects.all().delete()
-    PopulationHexSmall.objects.all().delete()
-    HexIntersections.objects.all().delete()
-    BigHexIntersections.objects.all().delete()
+    DataHexSmall.objects.all().delete()
+    DataHexBig.objects.all().delete()
 
 
 class Command(BaseCommand):
@@ -133,7 +123,5 @@ class Command(BaseCommand):
         load_departments()
         load_facilities()
         load_sports_areas()
-        load_hex(PopulationHexSmall, "population_density.csv")
-        load_hex(PopulationHexBig, "population_density_big.csv")
-        load_hex_intersections(HexIntersections, "hex_facility_intersection.csv")
-        load_hex_intersections(BigHexIntersections, "big_hex_facility_intersection.csv")
+        load_data_hexes(DataHexSmall, "data_hexes_small.csv")
+        load_data_hexes(DataHexBig, "data_hexes_big.csv")
