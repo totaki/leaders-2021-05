@@ -40,7 +40,7 @@
         <p>Square: {{ prop.square }}</p>
       </template>
     </hexes-layer-group>
-  
+
     <l-marker v-if="selectedFacility" :lat-lng="selectedFacility.placement.coordinates" :icon="icon">
     </l-marker>
 
@@ -118,7 +118,7 @@ export default {
         this.markers.addLayer(marker)
       });
       this.$refs.circles.mapObject.addLayer(this.markers)
-      this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')     
+      this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')
     },
     activeLayers(value){
       console.log(value);
@@ -153,7 +153,7 @@ export default {
       activeLayers: [],
       bigHexBins: [27, 379, 1900, 6627, 11525, 17106, 23040, 26530, 43127],
       smallHexBins: [5, 22, 360, 1597, 2661, 3805, 4739, 5333, 11000],
-      sportHexBins: [237, 386, 765, 1800, 2925, 4813, 8123, 14000, 29399, 44676, 123557, 294373],
+      sportHexBins: [124, 6866, 26184, 64665, 94201, 118899, 140914, 167049, 192377, 238084, 300000],
     };
   },
   methods: {
@@ -228,7 +228,7 @@ export default {
       }  
       if (this.activeLayers.find(layer => layer.name === "Пересечение плотностей")) {
         this.$store.dispatch("getSportIntersectionSmallHexes", {tiles})
-      }      
+      }
     },
     onZoom: function (zoom) {
       if (this.isBigHexes && zoom >= 14) {
