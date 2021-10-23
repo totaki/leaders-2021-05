@@ -41,7 +41,7 @@ export default {
         getOpacity: function (population,bins) {
             let opacity = 0;
             for (const val of bins) {
-                opacity += 0.1
+                opacity += 1 / bins.length
                 if (population < val) break;
             }
             return (opacity * 0.7) < 0.2 ? 0.2 : opacity * 0.7

@@ -34,7 +34,7 @@
       </template>
     </hexes-layer-group>
 
-    <hexes-layer-group name="Плотность спортивных объектов" :hexes="hexes" color="green" :bins="sportHexBins"  opacityBy="square" layerType="overlay">
+    <hexes-layer-group name="Плотность спортивных объектов" :hexes="hexes" color="green" :bins="isBigHexes? sportBigHexBins : sportHexBins"  opacityBy="square" layerType="overlay">
       <template v-slot:popup="{prop}">
         <p>Areas count: {{prop.areas_count }}</p>
         <p>Square: {{ prop.square }}</p>
@@ -154,6 +154,7 @@ export default {
       bigHexBins: [27, 379, 1900, 6627, 11525, 17106, 23040, 26530, 43127],
       smallHexBins: [5, 22, 360, 1597, 2661, 3805, 4739, 5333, 11000],
       sportHexBins: [124, 6866, 26184, 64665, 94201, 118899, 140914, 167049, 192377, 238084, 300000],
+      sportBigHexBins: [144,6520,27080,64477,95195,119351,142339,167483,193332,238483,445059]
     };
   },
   methods: {
