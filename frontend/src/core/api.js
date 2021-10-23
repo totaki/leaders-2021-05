@@ -32,7 +32,7 @@ const getSportTypes = () => api.get(`/sport-types`)
 const getFacilityReport = (id) => api.get(`/facilities/${id}/report`)
 
 const getDensityBigHexes = () => api.get(`/density/big-hex?limit=3500`)
-const getSportBigHexes = () => api.get(`/sport-density/big-hex?limit=3500`)
+const getSportBigHexes = () => api.get(`/sport-density/big-hex?limit=4000`)
 
 const getDensitySmallHexes = (zoom, x, y) => api.get(`/density/small-hex?tile=${zoom}/${x}/${y}&limit=1500`)
 const getSportSmallHexes = (zoom, x, y) => api.get(`/sport-density/small-hex?tile=${zoom}/${x}/${y}&limit=1500`)
