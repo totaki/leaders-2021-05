@@ -92,8 +92,11 @@ const actions = {
         commit("SET_FACILITIES", r.data.results)
       })
   },
+  getUnitingBigHexes: ({dispatch}) => {
+    dispatch('getBigHexes',{api: api.getUnitingBigHexes})
+  },
   getDensityBigHexes: ({dispatch}) => {
-    dispatch('getBigHexes',{api: api.getDensityBigHexes})
+    dispatch('getBigHexes',{api: api.getPopulationBigHexes})
   },
   getSportBigHexes: ({dispatch}) => {
     dispatch('getBigHexes',{api: api.getSportBigHexes})
@@ -104,8 +107,11 @@ const actions = {
         commit("SET_BIG_HEXES", r.data.results)
       })
   },
+  getUnitingSmallHexes: ({dispatch},{tiles}) => {
+    dispatch('getSmallHexes',{tiles,api: api.getUnitingSmallHexes})
+  },
   getDensitySmallHexes: ({dispatch},{tiles}) => {
-    dispatch('getSmallHexes',{tiles,api: api.getDensitySmallHexes})
+    dispatch('getSmallHexes',{tiles,api: api.getPopulationSmallHexes})
   },
   getSportSmallHexes: ({dispatch},{tiles}) => {
     dispatch('getSmallHexes',{tiles,api: api.getSportSmallHexes})

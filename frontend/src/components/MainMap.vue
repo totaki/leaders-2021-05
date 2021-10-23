@@ -8,36 +8,59 @@
     @update:zoom="onZoom"
     @overlayadd="overlayadd"
     @overlayremove="overlayremove"
+    @baselayerchange="baselayerchange"
     :options="{zoomControl: false}"
   >
     <l-control-zoom position="bottomright"></l-control-zoom>
     <l-control-layers ref="control" position="topright"></l-control-layers>
     <l-tile-layer ref="tileLayer" :url="url" :attribution="attribution"></l-tile-layer>
-    <l-layer-group ref="circles" :visible='false' name="Спортивные объекты" layer-type="overlay">
-      <l-circle
-          v-for="item in facilities"
-          :key="'c' + item.id"
-          :lat-lng="item.placement.coordinates"
-          :radius="getRadius(item.availability)"
-          :fillColor="isSquareCircleGreen(item.square) ? 'green': 'red'"
-          :weight="0"
-          :color="isSquareCircleGreen(item.square) ? 'green': 'red'"
-          :opacity="0.45"
-          :fillOpacity="getSquareCircleOpacity(item.square)"
-          :interactive="false"
-      />
+    <l-layer-group ref="circles" :visible='false' :name="layerNames[0]" layer-type="overlay">
     </l-layer-group>
-    <hexes-layer-group name="Плотность населения" :hexes="hexes" :colormap="[{index: 0, rgb:[255,0,0]},{index: 0.5, rgb: [255,125,125]},{index: 1, rgb: [255,255,255]}]" color="red" :bins="isBigHexes? bigHexBins : smallHexBins" opacityBy="population" layerType="overlay">
-      <template v-slot:popup="{prop}">
-        <p>Population: {{Math.round(prop.population)}}</p>
-        <p>Density: {{ isBigHexes? Math.round( prop.population * 0.85) : Math.round( prop.population * 0.1)}}</p>
-      </template>
+    <l-layer-group
+      name='Отключено'
+      layer-type="base"
+      :visible='true'
+    ></l-layer-group>
+    <hexes-layer-group 
+      :name="layerNames[1]" 
+      :hexes="hexes" 
+      :colormap="[{index: 0, rgb:[255,0,0]},{index: 0.5, rgb: [255,125,125]},{index: 1, rgb: [255,255,255]}]" 
+      color="red" 
+      :bins="isBigHexes? populationBigHexBins : populationSmallHexBins" 
+      opacityBy="population" 
+      layerType="base"
+      >
+        <template v-slot:popup="{prop}">
+          <p>Population: {{Math.round(prop.population)}}</p>
+          <p>Density: {{ isBigHexes? Math.round( prop.population / 0.85) : Math.round( prop.population / 0.1)}}</p>
+        </template>
     </hexes-layer-group>
 
-    <hexes-layer-group name="Плотность спортивных объектов" :hexes="hexes" colormap="greens" color="green" :bins="isBigHexes? sportBigHexBins : sportHexBins"  opacityBy="square" layerType="overlay">
+    <hexes-layer-group 
+      :name="layerNames[2]" 
+      :hexes="hexes" 
+      colormap="greens" 
+      color="green" 
+      :bins="isBigHexes? sportBigHexBins : sportSmallHexBins"  
+      opacityBy="square" 
+      layerType="base">
+        <template v-slot:popup="{prop}">
+          <p>Areas count: {{prop.areas_count }}</p>
+          <p>Square: {{ Math.round(prop.square) }}</p>
+        </template>
+    </hexes-layer-group>
+
+    <hexes-layer-group 
+      :name="layerNames[3]" 
+      :hexes="hexes" 
+      colormap="greens" 
+      color="green" :bins="isBigHexes? unitingBigHexBins : unitingSmallHexBins"  
+      opacityBy="square_by_person" 
+      layerType="base">
       <template v-slot:popup="{prop}">
-        <p>Areas count: {{prop.areas_count }}</p>
-        <p>Square: {{ prop.square }}</p>
+        <p>Areas count: {{ prop.areas_count }}</p>
+        <p>Square: {{ Math.round(prop.square) }}</p>
+        <p>Square by person: {{ Math.round(prop.square_by_person) }}</p>
       </template>
     </hexes-layer-group>
 
@@ -140,11 +163,15 @@ export default {
       greenSquareWeights: [
         686.5, 1092.0, 1720.0, 2734.8, 4956.0, 5000000.0
       ],
+      layerNames: ["Спортивные объекты","Плотность населения","Плотность спортивных объектов","Объединение населения и объектов"],
       zoomBorder: 14,
       activeLayers: [],
-      bigHexBins: [27, 379, 1900, 6627, 11525, 17106, 23040, 26530, 43127],
-      smallHexBins: [5, 22, 360, 1597, 2661, 3805, 4739, 5333, 11000],
-      sportHexBins: [124, 6866, 26184, 64665, 94201, 118899, 140914, 167049, 192377, 238084, 300000],
+      baseLayer: null,
+      unitingBigHexBins: [27, 379, 1900, 6627, 11525, 17106, 23040, 26530, 43127],
+      unitingSmallHexBins: [5, 22, 360, 1597, 2661, 3805, 4739, 5333, 11000],
+      populationBigHexBins: [27, 379, 1900, 6627, 11525, 17106, 23040, 26530, 43127],
+      populationSmallHexBins: [5, 22, 360, 1597, 2661, 3805, 4739, 5333, 11000],
+      sportSmallHexBins: [124, 6866, 26184, 64665, 94201, 118899, 140914, 167049, 192377, 238084, 300000],
       sportBigHexBins: [144,6520,27080,64477,95195,119351,142339,167483,193332,238483,445060]
     };
   },
@@ -153,23 +180,24 @@ export default {
       console.log(facility.id);
       this.$store.dispatch('getFacilityReport', facility)
     },
+    baselayerchange: function(layer) {
+      this.baseLayer = layer
+      if (this.isBigHexes) {
+        this.$store.commit("CLEAR_BIG_HEXES")
+      } else {
+        this.$store.commit("CLEAR_SMALL_HEXES")
+      }
+      this.$store.commit("CLEAR_LAST_DENSITY_TILES")
+
+      this.update(this.$refs.map.mapObject.getBounds())
+    },
     overlayadd: function(overlay){
       this.activeLayers.push(overlay)
       this.update(this.$refs.map.mapObject.getBounds())
     },
     overlayremove: function(overlay){
-      this.activeLayers.splice(this.activeLayers.indexOf(overlay),1)
-      if (overlay.name === "Плотность населения" || overlay.name === "Плотность спортивных объектов") {
-        if (this.isBigHexes) {
-          this.$store.commit("CLEAR_BIG_HEXES")
-        } else {
-          this.$store.commit("CLEAR_SMALL_HEXES")
-        }
-      }
-      this.$store.commit("CLEAR_LAST_DENSITY_TILES")
-      
+      this.activeLayers.splice(this.activeLayers.indexOf(overlay),1)      
       this.update(this.$refs.map.mapObject.getBounds())
-
     },
     getRadius: function (availability) {
       if (availability === 4) return 500;
@@ -199,7 +227,7 @@ export default {
     update: function (bounds) {
       this.bounds = bounds;
       let tiles = this.bbox2tiles(this.boundsToBbox(bounds), this.getZoomForTiles())
-      if (this.activeLayers.find(layer => layer.name === "Спортивные объекты")) {
+      if (this.activeLayers.find(layer => layer.name === this.layerNames[0])) {
         this.$store.dispatch(
           "getFacilitiesByTiles",
           {
@@ -208,23 +236,37 @@ export default {
           }
         )
       }
-      if ( this.activeLayers.find(layer => layer.name === "Плотность населения")) {
-        if (this.isBigHexes) {
-          if (!this.$store.getters.big_hexes.length) {
-            this.$store.dispatch("getDensityBigHexes");
+
+      switch (this.baseLayer.name) {
+        case this.layerNames[1]:
+          if (this.isBigHexes) {
+            if (!this.$store.getters.big_hexes.length) {
+              this.$store.dispatch("getDensityBigHexes");
+            }
+          } else {
+            this.$store.dispatch("getDensitySmallHexes", {tiles})
           }
-        } else {
-          this.$store.dispatch("getDensitySmallHexes", {tiles})
-        }
-      }  
-      if (this.activeLayers.find(layer => layer.name === "Плотность спортивных объектов")) {
-        if (this.isBigHexes) {
-          if (!this.$store.getters.big_hexes.length) {
-            this.$store.dispatch("getSportBigHexes");
+          break;
+        case this.layerNames[2]:
+          if (this.isBigHexes) {
+            if (!this.$store.getters.big_hexes.length) {
+              this.$store.dispatch("getSportBigHexes");
+            }
+          } else {
+            this.$store.dispatch("getSportSmallHexes", {tiles})
           }
-        } else {
-          this.$store.dispatch("getSportSmallHexes", {tiles})
-        }
+          break;
+        case this.layerNames[3]:
+          if (this.isBigHexes) {
+            if (!this.$store.getters.big_hexes.length) {
+              this.$store.dispatch("getUnitingBigHexes");
+            }
+          } else {
+            this.$store.dispatch("getUnitingSmallHexes", {tiles})
+          }
+          break;
+        default:
+          break;
       }  
     },
     onZoom: function (zoom) {
