@@ -5,7 +5,7 @@ import Report from '../components/Report'
 
 const routes = [
     { path: '/', component: Main },
-    { path: '/report/:ids', component: Report } 
+    { path: '/report/:isBig/:ids', component: Report } 
   ]
 
   const router = new VueRouter({

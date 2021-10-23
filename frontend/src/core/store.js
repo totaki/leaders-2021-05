@@ -45,7 +45,8 @@ const state = {
   lastFacilityFilter: null,
   newFacilities: [],
   lastDensityTiles: [],
-  selectedHexes: []
+  selectedHexes: [],
+  hexReport: null
 }
 
 const getters = {
@@ -61,6 +62,7 @@ const getters = {
   facilityReport: state => state.facilityReport,
   newFacilities: state => state.newFacilities,
   selectedHexes: state => state.selectedHexes,
+  hexReport: state => state.hexReport,
 }
 
 const actions = {
@@ -158,9 +160,6 @@ const actions = {
       availability: [3, 4],
       limit: 150, ...facilityFilter
     }, state.facilitiesCancelTokenSource.token))
-    // requests.push(
-    //   api.getFacilities({availability: [1, 2], limit: 600, ...facilityFilter}, state.facilitiesCancelTokenSource.token),
-    // )
     let facilities = []
     axios.all(requests).then(axios.spread((...responses) => {
       for (const response of responses) {
@@ -170,6 +169,19 @@ const actions = {
     })).catch(errors => {
       console.log(errors)
     })
+  },
+  getHexReport({commit},{isBig,ids}){
+    if (isBig === 'true'){
+      console.log("serch big")
+      api.getHexBigReport(ids).then( r => {
+        commit("SET_HEX_REPORT",r.data)
+      })
+    } else {
+      console.log("serch small")
+      api.getHexSmallReport(ids).then( r => {
+        commit("SET_HEX_REPORT",r.data)
+      })
+    }
   }
 }
 
@@ -235,6 +247,9 @@ const mutations = {
   },
   CLEAR_SELECTED_HEXES: (state) => {
     state.selectedHexes = []
+  },
+  SET_HEX_REPORT: (state, item) => {
+    state.hexReport = item
   }
 }
 

@@ -5,8 +5,13 @@
 </template>
 <script>
 export default {
+    computed: {
+        hexReport(){
+            return this.$store.getters.hexReport
+        }
+    },
     mounted() {
-        console.log(JSON.parse(this.$route.params.ids))
+        this.$store.dispatch("getHexReport", {isBig: this.$route.params.isBig, ids: {ids: JSON.parse(this.$route.params.ids)}})
     },
 }
 </script>

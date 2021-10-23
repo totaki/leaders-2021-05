@@ -24,7 +24,17 @@
     </l-control>
     <l-control-layers ref="control" :collapsed="false" position="topright"></l-control-layers>
     <l-control v-if="selectedHexes.length" position="topright">
-      <v-btn :to="{ path: `/report/${JSON.stringify(selectedHexes)}`}" target="_blank" icon><v-icon>mdi-plus</v-icon></v-btn>
+      <v-btn  
+        :to="{ path: `/report/${isBigHexes}/${JSON.stringify(selectedHexes)}`}"
+        target="_blank" 
+        depressed 
+        fab
+        height="40px"
+        width="40px"
+        class="mr-2"
+        >
+          <v-icon>mdi-chart-line</v-icon>
+        </v-btn>
     </l-control>
 
 
@@ -304,8 +314,10 @@ export default {
     onZoom: function (zoom) {
       if (this.isBigHexes && zoom >= 14) {
         this.isBigHexes = false;
+        this.$store.commit("CLEAR_SELECTED_HEXES")
       } else if (!this.isBigHexes && zoom < 14) {
         this.isBigHexes = true;
+        this.$store.commit("CLEAR_SELECTED_HEXES")
       }
     },
     getOpacity: function (population) {
