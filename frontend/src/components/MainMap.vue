@@ -17,7 +17,7 @@
         <v-btn @click='handleLayerControl' >
           <v-icon small>mdi-layers-triple-outline</v-icon>
         </v-btn>        
-        <v-btn @click='canSelect = !canSelect'>
+        <v-btn @click='canSelect = !canSelect' :disabled="baseLayer && baseLayer.name !== layerNames[3]">
           <v-icon small>mdi-select-multiple</v-icon>
         </v-btn>
       </v-btn-toggle>
@@ -235,10 +235,12 @@ export default {
     },
     overlayadd: function(overlay){
       this.activeLayers.push(overlay)
+      this.$store.commit("SET_SELECTED_FACILITY_LAYER",true)
       this.update(this.$refs.map.mapObject.getBounds())
     },
     overlayremove: function(overlay){
-      this.activeLayers.splice(this.activeLayers.indexOf(overlay),1)      
+      this.activeLayers.splice(this.activeLayers.indexOf(overlay),1)  
+      this.$store.commit("SET_SELECTED_FACILITY_LAYER",false)
       this.update(this.$refs.map.mapObject.getBounds())
     },
     getRadius: function (availability) {

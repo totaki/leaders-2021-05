@@ -19,6 +19,7 @@ const state = {
     {id: 1, name: "Городского значения"},
   ],
   selectedFacility: null,
+  selectedFacilityLayer: false,
   facilityFilter: {department: null},
   facilityReport: {
     name: "",
@@ -63,6 +64,7 @@ const getters = {
   newFacilities: state => state.newFacilities,
   selectedHexes: state => state.selectedHexes,
   hexReport: state => state.hexReport,
+  selectedFacilityLayer: state => state.selectedFacilityLayer
 }
 
 const actions = {
@@ -250,6 +252,9 @@ const mutations = {
   },
   SET_HEX_REPORT: (state, item) => {
     state.hexReport = item
+  },
+  SET_SELECTED_FACILITY_LAYER: (state, item) => {
+    state.selectedFacilityLayer = item
   }
 }
 
