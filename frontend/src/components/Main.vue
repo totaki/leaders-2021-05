@@ -15,11 +15,7 @@ export default {
     MainMap,
     MainMenu,
   },
-  async mounted() {
-    this.$store.dispatch("getDepartments");
-    this.$store.dispatch("getAreaTypes");
-    this.$store.dispatch("getSportTypes");
-  },
+
 };
 </script>
 <style >

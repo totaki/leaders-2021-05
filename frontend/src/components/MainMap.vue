@@ -58,7 +58,7 @@
       >
         <template v-slot:popup="{prop}">
           <p>Population: {{Math.round(prop.population)}}</p>
-          <p>Density: {{ isBigHexes? Math.round( prop.population / 0.85) : Math.round( prop.population / 0.1)}}</p>
+          <p>Density: {{ isBigHexes? Math.round( prop.population / 0.7373) : Math.round( prop.population / 0.105)}}</p>
         </template>
     </hexes-layer-group>
 
