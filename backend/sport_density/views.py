@@ -102,7 +102,7 @@ class BaseHexViewSet(ReadOnlyModelViewSet, ABC):
 class SmallHexViewSet(BaseHexViewSet):
     queryset = DataHexSmall.objects.all()
     serializer_class = DetailDataHexSmallSerializer
-    h3_resolution = 8
+    h3_resolution = 9
 
     def get_serializer_class(self):
         if self.action == "sport_density":
@@ -120,7 +120,7 @@ class SmallHexViewSet(BaseHexViewSet):
 class BigHexViewSet(BaseHexViewSet):
     queryset = DataHexBig.objects.all()
     serializer_class = DetailDataHexBigSerializer
-    h3_resolution = 9
+    h3_resolution = 8
 
     def get_serializer_class(self):
         if self.action == "sport_density":
