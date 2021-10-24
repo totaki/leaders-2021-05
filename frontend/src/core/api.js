@@ -29,7 +29,10 @@ const getFacilitiesByTile = (zoom, x, y) => api.get(`/facilities?tile=${zoom}/${
 
 const getAreaTypes = () => api.get(`/sport-area-types`)
 const getSportTypes = () => api.get(`/sport-types`)
+
 const getFacilityReport = (id) => api.get(`/facilities/${id}/report`)
+const getHexSmallReport = (params) => api.get(`/data-hex/small-hex/hexes-report?${serialize(params)}`)
+const getHexBigReport = (params) => api.get(`/data-hex/big-hex/hexes-report?${serialize(params)}`)
 
 const getPopulationBigHexes = () => api.get(`/data-hex/big-hex/population-density?limit=3500`)
 const getSportBigHexes = () => api.get(`/data-hex/big-hex/sport-density?limit=4000`)
@@ -39,6 +42,7 @@ const getUnitingSmallHexes = (zoom, x, y) => api.get(`/data-hex/small-hex?tile=$
 const getPopulationSmallHexes = (zoom, x, y) => api.get(`/data-hex/small-hex/population-density?tile=${zoom}/${x}/${y}&limit=1500`)
 const getSportSmallHexes = (zoom, x, y) => api.get(`/data-hex/small-hex/sport-density?tile=${zoom}/${x}/${y}&limit=1500`)
 const getSportIntersectionSmallHexes = (zoom, x, y) => api.get(`/sport-density/small-hex-intersections?tile=${zoom}/${x}/${y}&limit=1500`)
+
 
 export default {
   getDepartments,
@@ -54,4 +58,6 @@ export default {
   getPopulationSmallHexes,
   getSportSmallHexes,
   getSportIntersectionSmallHexes,
+  getHexBigReport,
+  getHexSmallReport,
 }
