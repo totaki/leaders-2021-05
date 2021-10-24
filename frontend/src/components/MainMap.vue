@@ -12,7 +12,32 @@
     :options="{zoomControl: false}"
   >
     <l-control-zoom position="bottomright"></l-control-zoom>
-    <l-control-layers ref="control" position="topright"></l-control-layers>
+    <l-control position="topright" >
+      <v-btn-toggle multiple class="selectBtn" >
+        <v-btn @click='handleLayerControl' >
+          <v-icon small>mdi-layers-triple-outline</v-icon>
+        </v-btn>        
+        <v-btn @click='canSelect = !canSelect' :disabled="baseLayer && baseLayer.name !== layerNames[3]">
+          <v-icon small>mdi-select-multiple</v-icon>
+        </v-btn>
+      </v-btn-toggle>
+    </l-control>
+    <l-control-layers ref="control" :collapsed="false" position="topright"></l-control-layers>
+    <l-control v-if="selectedHexes.length" position="topright">
+      <v-btn  
+        :to="{ path: `/report/${isBigHexes}/${JSON.stringify(selectedHexes)}`}"
+        target="_blank" 
+        depressed 
+        fab
+        height="40px"
+        width="40px"
+        class="mr-2"
+        >
+          <v-icon>mdi-chart-line</v-icon>
+        </v-btn>
+    </l-control>
+
+
     <l-tile-layer ref="tileLayer" :url="url" :attribution="attribution"></l-tile-layer>
     <l-layer-group ref="circles" :visible='false' :name="layerNames[0]" layer-type="overlay">
     </l-layer-group>
@@ -26,6 +51,7 @@
       :hexes="hexes" 
       :colormap="[{index: 0, rgb:[255,0,0]},{index: 0.5, rgb: [255,125,125]},{index: 1, rgb: [255,255,255]}]" 
       color="red" 
+      :canSelect='canSelect'
       :bins="isBigHexes? populationBigHexBins : populationSmallHexBins" 
       opacityBy="population" 
       layerType="base"
@@ -42,6 +68,7 @@
       colormap="greens" 
       color="green" 
       :bins="isBigHexes? sportBigHexBins : sportSmallHexBins"  
+      :canSelect='canSelect'
       opacityBy="square" 
       layerType="base">
         <template v-slot:popup="{prop}">
@@ -55,6 +82,7 @@
       :hexes="hexes" 
       colormap="greens" 
       color="green" :bins="isBigHexes? unitingBigHexBins : unitingSmallHexBins"  
+      :canSelect='canSelect'
       opacityBy="square_by_person" 
       layerType="base">
       <template v-slot:popup="{prop}">
@@ -72,7 +100,7 @@
 </template>
 
 <script>
-import {LMap, LTileLayer, LMarker, LControlLayers, LLayerGroup,LControlZoom} from 'vue2-leaflet';
+import {LMap, LTileLayer, LMarker, LControlLayers, LLayerGroup,LControlZoom, LControl} from 'vue2-leaflet';
 import L from "leaflet";
 import icon from "../icon.png";
 import "leaflet.markercluster/dist/leaflet.markercluster-src"
@@ -85,11 +113,15 @@ export default {
     LMarker,
     LControlLayers,
     LControlZoom,
+    LControl,
     LLayerGroup,
     HexesLayerGroup,
   },
   computed: {
     console: ()=> console,
+    selectedHexes(){
+      return this.$store.getters.selectedHexes;
+    },
     facilities() {
       return this.$store.getters.newFacilities;
     },
@@ -140,6 +172,7 @@ export default {
       this.$refs.circles.mapObject.addLayer(this.markers)
       this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')
     },
+
   },
   data () {
     return {
@@ -167,6 +200,7 @@ export default {
       zoomBorder: 14,
       activeLayers: [],
       baseLayer: null,
+      canSelect: false,
       unitingBigHexBins: [4, 6, 9, 13, 18, 27, 45, 114, 681, 2928, 11948, 48660],
       unitingSmallHexBins: [51, 81, 236, 3016, 8978, 22328, 34320, 43541, 54268, 63705, 100283, 111083],
       populationBigHexBins: [27, 379, 1900, 6627, 11525, 17106, 23040, 26530, 43127],
@@ -176,6 +210,14 @@ export default {
     };
   },
   methods: {
+    handleLayerControl(){
+      const classes = this.$el.querySelector('.leaflet-control-layers').classList;
+      if (classes.contains('hide')) {
+        classes.remove('hide')
+      } else {
+        classes.toggle('hide')
+      }
+    },
     showInformation(facility){
       console.log(facility.id);
       this.$store.dispatch('getFacilityReport', facility)
@@ -188,15 +230,17 @@ export default {
         this.$store.commit("CLEAR_SMALL_HEXES")
       }
       this.$store.commit("CLEAR_LAST_DENSITY_TILES")
-
+      this.$store.commit("CLEAR_SELECTED_HEXES")
       this.update(this.$refs.map.mapObject.getBounds())
     },
     overlayadd: function(overlay){
       this.activeLayers.push(overlay)
+      this.$store.commit("SET_SELECTED_FACILITY_LAYER",true)
       this.update(this.$refs.map.mapObject.getBounds())
     },
     overlayremove: function(overlay){
-      this.activeLayers.splice(this.activeLayers.indexOf(overlay),1)      
+      this.activeLayers.splice(this.activeLayers.indexOf(overlay),1)  
+      this.$store.commit("SET_SELECTED_FACILITY_LAYER",false)
       this.update(this.$refs.map.mapObject.getBounds())
     },
     getRadius: function (availability) {
@@ -272,8 +316,10 @@ export default {
     onZoom: function (zoom) {
       if (this.isBigHexes && zoom >= 14) {
         this.isBigHexes = false;
+        this.$store.commit("CLEAR_SELECTED_HEXES")
       } else if (!this.isBigHexes && zoom < 14) {
         this.isBigHexes = true;
+        this.$store.commit("CLEAR_SELECTED_HEXES")
       }
     },
     getOpacity: function (population) {
@@ -335,7 +381,9 @@ export default {
   },
   mounted() {
     this.$nextTick(() => {
-      this.update(this.$refs.map.mapObject.getBounds())
+      this.update(this.$refs.map.mapObject.getBounds());
+
+      this.handleLayerControl()
     })
   }
 }
@@ -346,16 +394,26 @@ export default {
 @import "~leaflet.markercluster/dist/MarkerCluster.css";
 @import "~leaflet.markercluster/dist/MarkerCluster.Default.css";
 @import url("https://unpkg.com/leaflet@1.0.0/dist/leaflet.css");
-
+.icon{
+  min-width: 44px !important;
+}
+.selectBtn {
+  border: 2px solid rgba(0,0,0,0.2);
+  border-radius: 20px !important;
+  margin-right: 10px !important;
+}
 .selected {
   filter: hue-rotate(265deg);
   margin-left: -12px;
   margin-top: -41px;
 }
 .leaflet-control-layers{
-    margin-top: 32px !important;
-    margin-right: 20px !important;
+  /* display: none; */
+  margin-right: 20px !important;
   border-radius: 20px !important;
+}
+.hide{
+  display: none;
 }
 .leaflet-control-layers-overlays{
   padding: 5px;

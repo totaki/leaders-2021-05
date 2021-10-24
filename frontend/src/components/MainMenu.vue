@@ -173,11 +173,17 @@ export default {
     },
     facilityReport(){
       return this.$store.getters.facilityReport;
+    },
+    showFilter() {
+      return this.$store.getters.selectedFacilityLayer;
     }
   },
   watch: {
     facilityReport(val){
       this.showInfo(val)
+    },
+    showFilter(val) {
+      this.filterDrawer = val
     }
   },
   data () {
@@ -185,7 +191,7 @@ export default {
         right: null,
   
         filter: {},
-        filterDrawer: true,
+        filterDrawer:false,
         infoDrawer: false,
       }
   },
@@ -200,10 +206,8 @@ export default {
     showInfo(facility){
       console.log(facility)
       this.infoDrawer = true
-      this.filterDrawer = false
     },
     closeInfo(){
-      this.filterDrawer = true
       this.infoDrawer = false
 
     }

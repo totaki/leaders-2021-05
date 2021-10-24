@@ -19,6 +19,7 @@ const state = {
     {id: 1, name: "Городского значения"},
   ],
   selectedFacility: null,
+  selectedFacilityLayer: false,
   facilityFilter: {department: null},
   facilityReport: {
     name: "",
@@ -44,7 +45,9 @@ const state = {
   lastTilesList: new Set(),
   lastFacilityFilter: null,
   newFacilities: [],
-  lastDensityTiles: []
+  lastDensityTiles: [],
+  selectedHexes: [],
+  hexReport: null
 }
 
 const getters = {
@@ -59,6 +62,9 @@ const getters = {
   facilityFilter: state => state.facilityFilter,
   facilityReport: state => state.facilityReport,
   newFacilities: state => state.newFacilities,
+  selectedHexes: state => state.selectedHexes,
+  hexReport: state => state.hexReport,
+  selectedFacilityLayer: state => state.selectedFacilityLayer
 }
 
 const actions = {
@@ -91,6 +97,9 @@ const actions = {
       .then(r => {
         commit("SET_FACILITIES", r.data.results)
       })
+  },
+  getSelectedHexes: ({commit}, hex ) => {
+    commit("SET_SELECTED_HEXES", hex)
   },
   getUnitingBigHexes: ({dispatch}) => {
     dispatch('getBigHexes',{api: api.getUnitingBigHexes})
@@ -153,9 +162,6 @@ const actions = {
       availability: [3, 4],
       limit: 150, ...facilityFilter
     }, state.facilitiesCancelTokenSource.token))
-    // requests.push(
-    //   api.getFacilities({availability: [1, 2], limit: 600, ...facilityFilter}, state.facilitiesCancelTokenSource.token),
-    // )
     let facilities = []
     axios.all(requests).then(axios.spread((...responses) => {
       for (const response of responses) {
@@ -165,6 +171,19 @@ const actions = {
     })).catch(errors => {
       console.log(errors)
     })
+  },
+  getHexReport({commit},{isBig,ids}){
+    if (isBig === 'true'){
+      console.log("serch big")
+      api.getHexBigReport(ids).then( r => {
+        commit("SET_HEX_REPORT",r.data)
+      })
+    } else {
+      console.log("serch small")
+      api.getHexSmallReport(ids).then( r => {
+        commit("SET_HEX_REPORT",r.data)
+      })
+    }
   }
 }
 
@@ -221,6 +240,22 @@ const mutations = {
   CLEAR_LAST_DENSITY_TILES: (state) => {
     state.lastDensityTiles = []
   },
+  SET_SELECTED_HEXES: (state, item) => {
+    if (state.selectedHexes.find( hex=>hex === item)) {
+      state.selectedHexes.splice(state.selectedHexes.findIndex(hex => hex === item),1)
+      return
+    }
+    state.selectedHexes.push(item)
+  },
+  CLEAR_SELECTED_HEXES: (state) => {
+    state.selectedHexes = []
+  },
+  SET_HEX_REPORT: (state, item) => {
+    state.hexReport = item
+  },
+  SET_SELECTED_FACILITY_LAYER: (state, item) => {
+    state.selectedFacilityLayer = item
+  }
 }
 
 export default new Vuex.Store({
