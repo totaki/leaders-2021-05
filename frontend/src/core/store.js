@@ -232,7 +232,7 @@ const mutations = {
     state.lastTilesList = new Set();
   },
   SET_NEW_FACILITIES: (state, items) => {
-    state.newFacilities = items
+    state.newFacilities = items.map(item => Object.freeze(item))
   },
   SET_LAST_DENSITY_TILES: (state, items) => {
     state.lastDensityTiles = items

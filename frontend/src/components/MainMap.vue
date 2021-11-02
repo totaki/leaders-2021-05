@@ -48,7 +48,7 @@
     ></l-layer-group>
     <hexes-layer-group 
       :name="layerNames[1]" 
-      :hexes="hexes" 
+      :hexes="baseLayer && baseLayer.name === layerNames[1]? hexes : []"
       :colormap="[{index: 0, rgb:[255,0,0]},{index: 0.5, rgb: [255,125,125]},{index: 1, rgb: [255,255,255]}]" 
       color="red" 
       :canSelect='canSelect'
@@ -64,7 +64,7 @@
 
     <hexes-layer-group 
       :name="layerNames[2]" 
-      :hexes="hexes" 
+      :hexes="baseLayer && baseLayer.name === layerNames[2]? hexes : []"
       colormap="greens" 
       color="green" 
       :bins="isBigHexes? sportBigHexBins : sportSmallHexBins"  
@@ -79,7 +79,7 @@
 
     <hexes-layer-group 
       :name="layerNames[3]" 
-      :hexes="hexes" 
+      :hexes="baseLayer && baseLayer.name === layerNames[3]? hexes : []"
       colormap="greens" 
       color="green" :bins="isBigHexes? unitingBigHexBins : unitingSmallHexBins"  
       :canSelect='canSelect'
