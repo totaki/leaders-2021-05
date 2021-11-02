@@ -1,9 +1,8 @@
-import json
-from abc import ABC, abstractmethod
+from abc import ABC
 from collections import Counter
 
 import h3
-from django.db.models import Sum, Count, F
+from django.db.models import Q
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
@@ -32,24 +31,52 @@ class BaseHexViewSet(ReadOnlyModelViewSet, ABC):
 
     def get_queryset(self):
         if self.action == "sport_density":
-            return self.queryset.annotate(
-                square=Sum("facilities__areas__square"),
-                areas_count=Count("facilities__areas"),
-            )
-        if self.action == "population_density":
-            return self.queryset.filter(population__gt=0)
+            return self.queryset.annotate_areas()
+        if self.action == "hexes_report":
+            return self.queryset
+        if self.action == "population_density" or self.action == 'list':
+            return self.queryset.populated()
+
+        return (
+            self.queryset
+            .populated()
+            .annotate_areas()
+            .annotate_square_by_person()
+        )
+
+    def filter_queryset(self, queryset):
         if self.action == "hexes_report":
             hex_ids = self.request.query_params.getlist("ids", [])
             hex_ids = [int(hex_id) for hex_id in hex_ids]
-            return self.queryset.filter(pk__in=hex_ids)
-        return (
-            self.queryset.filter(population__gt=0)
-            .annotate(
-                square=Sum("facilities__areas__square"),
-                areas_count=Count("facilities__areas"),
+            return queryset.filter(pk__in=hex_ids)
+        if self.action in ("list", "sport_density"):
+            sport_ids = self.request.query_params.getlist("sports", [])
+            area_type = self.request.query_params.get("area_type", None)
+            availability = self.request.query_params.get("availability", None)
+            department = self.request.query_params.get("department", None)
+            areas_filter = None
+            filters = []
+            if sport_ids:
+                filters.append(Q(facilities__areas__sports__contains=sport_ids))
+            if area_type is not None:
+                filters.append(Q(facilities__areas__type=area_type))
+            if availability is not None:
+                filters.append(Q(facilities__availability=availability))
+            if department is not None:
+                filters.append(Q(facilities__department=department))
+
+            if filters:
+                areas_filter = filters[0]
+                for filter_ in filters:
+                    areas_filter &= filter_
+
+            return (
+                self.queryset
+                .populated()
+                .annotate_areas(areas_filter=areas_filter)
+                .annotate_square_by_person()
             )
-            .annotate(square_by_person=F("square") / F("population"))
-        )
+        return queryset
 
     @action(detail=False, url_path="sport-density")
     def sport_density(self, request, *args, **kwargs):
