@@ -1,23 +1,9 @@
 <template>
     <l-layer-group ref="layer" :visible='false' :name="name" :layer-type="layerType" :options='options'>
-<!--        <l-polygon-->
-<!--          v-for="poly in hexes"-->
-<!--          :lat-lngs="poly.polygon.coordinates[0]"-->
-<!--          :key="poly.id"-->
-<!--          :fillColor="getColorMap(poly[opacityBy],bins)"-->
-<!--          :fillOpacity="0.7"-->
-<!--          :weight="1"-->
-<!--          :color="getSelected.find(hex => hex===poly.id)? 'red' : ''"-->
-<!--          @click="canSelect && selectHex(poly)"-->
-<!--          >-->
-<!--          <l-popup>-->
-<!--            <slot name="popup" v-bind:prop="poly"></slot>-->
-<!--          </l-popup>-->
-<!--        </l-polygon>-->
+
     </l-layer-group>
 </template>
 <script>
-// import { LPolygon, LLayerGroup, LPopup  } from 'vue2-leaflet';
 import { LLayerGroup  } from 'vue2-leaflet';
 import Colormap from 'colormap';
 import L from "leaflet";
@@ -36,9 +22,7 @@ export default {
         colormap:{},
     },
     components: {
-        // LPolygon,
         LLayerGroup,
-        // LPopup
     },
     computed:{
         console: () => console,
@@ -57,8 +41,10 @@ export default {
                     color: this.getSelected.find(hex => hex === el.id)? 'red' : ''
                 }
                 let hex = L.polygon(el.polygon.coordinates[0],options);
+                hex.on('click',()=> this.canSelect && this.selectHex(hex,el.id))
                 this.hexArray.addLayer(hex)
             });
+            console.log(this.$slots)
             this.$refs.layer.mapObject.addLayer(this.hexArray)
         }
     },
@@ -79,8 +65,13 @@ export default {
 
             return colorIdx === -1? colors[colors.length - 1] : colors[colorIdx]
         },
-        selectHex(hex){
-            this.$store.dispatch("getSelectedHexes",hex.id)
+        selectHex(hex,id){
+            if (!this.getSelected.find(hex => hex===id)) {
+                hex.setStyle({color:'red'})
+            } else {
+                hex.setStyle({color:''})
+            }
+            this.$store.dispatch("getSelectedHexes",id)
         }
     },
 }
