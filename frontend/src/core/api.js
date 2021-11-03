@@ -34,9 +34,9 @@ const getFacilityReport = (id) => api.get(`/facilities/${id}/report`)
 const getHexSmallReport = (params) => api.get(`/data-hex/small-hex/hexes-report?${serialize(params)}`)
 const getHexBigReport = (params) => api.get(`/data-hex/big-hex/hexes-report?${serialize(params)}`)
 
-const getPopulationBigHexes = () => api.get(`/data-hex/big-hex/population-density?limit=3500`)
-const getSportBigHexes = () => api.get(`/data-hex/big-hex/sport-density?limit=4000`)
-const getUnitingBigHexes = () => api.get(`/data-hex/big-hex?limit=4000`)
+const getPopulationBigHexes = (zoom, x, y) => api.get(`/data-hex/big-hex/population-density?tile=${zoom}/${x}/${y}`)
+const getSportBigHexes = (zoom, x, y) => api.get(`/data-hex/big-hex/sport-density?tile=${zoom}/${x}/${y}`)
+const getUnitingBigHexes = (zoom, x, y) => api.get(`/data-hex/big-hex?tile=${zoom}/${x}/${y}`)
 
 const getUnitingSmallHexes = (zoom, x, y) => api.get(`/data-hex/small-hex?tile=${zoom}/${x}/${y}&limit=1500`)
 const getPopulationSmallHexes = (zoom, x, y) => api.get(`/data-hex/small-hex/population-density?tile=${zoom}/${x}/${y}&limit=1500`)

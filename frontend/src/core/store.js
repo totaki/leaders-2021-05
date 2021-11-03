@@ -9,6 +9,7 @@ const state = {
   departments: [],
   facilities: [],
   big_hexes: [],
+  hexes: [],
   small_hexes: [],
   areaTypes: [{id:0,name:''}],
   sportTypes: [{id:0,name:''}],
@@ -53,8 +54,7 @@ const state = {
 const getters = {
   departments: state => state.departments,
   facilities: state => state.facilities,
-  big_hexes: state => state.big_hexes,
-  small_hexes: state => state.small_hexes,
+  hexes: state => state.hexes,
   areaTypes: state => state.areaTypes,
   sportTypes: state => state.sportTypes,
   availabilities: state => state.availabilities,
@@ -101,34 +101,28 @@ const actions = {
   getSelectedHexes: ({commit}, hex ) => {
     commit("SET_SELECTED_HEXES", hex)
   },
-  getUnitingBigHexes: ({dispatch}) => {
-    dispatch('getBigHexes',{api: api.getUnitingBigHexes})
+  getUnitingBigHexes: ({dispatch},{tiles}) => {
+    dispatch('getHexes',{tiles,api: api.getUnitingBigHexes})
   },
-  getDensityBigHexes: ({dispatch}) => {
-    dispatch('getBigHexes',{api: api.getPopulationBigHexes})
+  getDensityBigHexes: ({dispatch},{tiles}) => {
+    dispatch('getHexes',{tiles,api: api.getPopulationBigHexes})
   },
-  getSportBigHexes: ({dispatch}) => {
-    dispatch('getBigHexes',{api: api.getSportBigHexes})
-  },
-  getBigHexes: ({ commit }, {api} ) => {
-    api()
-      .then(r => {
-        commit("SET_BIG_HEXES", r.data.results)
-      })
+  getSportBigHexes: ({dispatch},{tiles}) => {
+    dispatch('getHexes',{tiles,api: api.getSportBigHexes})
   },
   getUnitingSmallHexes: ({dispatch},{tiles}) => {
-    dispatch('getSmallHexes',{tiles,api: api.getUnitingSmallHexes})
+    dispatch('getHexes',{tiles,api: api.getUnitingSmallHexes})
   },
   getDensitySmallHexes: ({dispatch},{tiles}) => {
-    dispatch('getSmallHexes',{tiles,api: api.getPopulationSmallHexes})
+    dispatch('getHexes',{tiles,api: api.getPopulationSmallHexes})
   },
   getSportSmallHexes: ({dispatch},{tiles}) => {
-    dispatch('getSmallHexes',{tiles,api: api.getSportSmallHexes})
+    dispatch('getHexes',{tiles,api: api.getSportSmallHexes})
   },
   getSportIntersectionSmallHexes: ({dispatch},{tiles}) => {
-    dispatch('getSmallHexes',{tiles,api: api.getSportIntersectionSmallHexes})
+    dispatch('getHexes',{tiles,api: api.getSportIntersectionSmallHexes})
   },
-  getSmallHexes: ({commit},{ tiles, api}) => {
+  getHexes: ({commit},{ tiles, api}) => {
     if (JSON.stringify(state.lastDensityTiles) === JSON.stringify(tiles)) return;
     commit("SET_LAST_DENSITY_TILES", tiles)
     const requests = tiles.map(([x, y, zoom]) => api(zoom, x, y))
@@ -137,7 +131,7 @@ const actions = {
       for (const response of responses) {
         hexes.push(...response.data.results)
       }
-      commit("SET_SMALL_HEXES", hexes.filter((item, idx) => hexes.findIndex(hex => hex.id === item.id) === idx))
+      commit("SET_HEXES", hexes.filter((item, idx) => hexes.findIndex(hex => hex.id === item.id) === idx))
     })).catch(errors => {
       console.log(errors)
     })
@@ -174,12 +168,10 @@ const actions = {
   },
   getHexReport({commit},{isBig,ids}){
     if (isBig === 'true'){
-      console.log("serch big")
       api.getHexBigReport(ids).then( r => {
         commit("SET_HEX_REPORT",r.data)
       })
     } else {
-      console.log("serch small")
       api.getHexSmallReport(ids).then( r => {
         commit("SET_HEX_REPORT",r.data)
       })
@@ -190,17 +182,11 @@ const actions = {
 const mutations = {
   SET_DEPARTMENTS: (state, items) => {state.departments = items},
   SET_FACILITIES: (state, items) => {state.facilities = items},
-  SET_BIG_HEXES: (state, items) => {
-    state.big_hexes = items
+  SET_HEXES: (state, items) => {
+    state.hexes = items
   },
-  CLEAR_BIG_HEXES: (state) => {
-    state.big_hexes = []
-  },
-  SET_SMALL_HEXES: (state, items) => {
-    state.small_hexes = items
-  },
-  CLEAR_SMALL_HEXES: (state) => {
-    state.small_hexes = []
+  CLEAR_HEXES: (state) => {
+    state.hexes = []
   },
   SET_AREA_TYPES: (state, items) => {
     state.areaTypes = items
