@@ -39,7 +39,7 @@
 
 
     <l-tile-layer ref="tileLayer" :url="url" :attribution="attribution"></l-tile-layer>
-    <l-layer-group ref="circles" :visible='false' :name="layerNames[0]" layer-type="overlay">
+    <l-layer-group ref="circles" :visible='true' :name="layerNames[0]" layer-type="overlay">
     </l-layer-group>
     <l-layer-group
       name='Отключено'
@@ -91,16 +91,11 @@
         <p>Square by person: {{ Math.round(prop.square_by_person) }}</p>
       </template>
     </hexes-layer-group>
-
-    <l-marker v-if="selectedFacility" :lat-lng="selectedFacility.placement.coordinates" :icon="icon">
-    </l-marker>
-
-
   </l-map>
 </template>
 
 <script>
-import {LMap, LTileLayer, LMarker, LControlLayers, LLayerGroup,LControlZoom, LControl} from 'vue2-leaflet';
+import {LMap, LTileLayer, LControlLayers, LLayerGroup,LControlZoom, LControl} from 'vue2-leaflet';
 import L from "leaflet";
 import icon from "../icon.png";
 import "leaflet.markercluster/dist/leaflet.markercluster-src"
@@ -110,7 +105,6 @@ export default {
   components: {
     LMap,
     LTileLayer,
-    LMarker,
     LControlLayers,
     LControlZoom,
     LControl,
@@ -130,6 +124,9 @@ export default {
     },
     facilityFilter() {
       return this.$store.getters.facilityFilter;
+    },
+    sportFilter() {
+      return this.$store.getters.sportFilter;
     },
     facilityReport() {
       return this.$store.getters.facilityReport;
@@ -152,6 +149,7 @@ export default {
       this.markers.clearLayers()
       this.$store.commit("CLEAR_TILE_LIST")
       this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')
+      if (!newVal) return
       this.$store.dispatch(
         "getFacilitiesByTiles",
         {
@@ -159,6 +157,12 @@ export default {
           facilityFilter: newVal
         }
       )
+    },
+    sportFilter() {
+      this.$store.commit("CLEAR_HEXES")
+      this.$store.commit("CLEAR_LAST_DENSITY_TILES")
+      this.$store.commit("CLEAR_SELECTED_HEXES")
+      this.update(this.$refs.map.mapObject.getBounds())
     },
     facilities(fac) {
       if (!fac.length) return;
@@ -266,7 +270,7 @@ export default {
     update: function (bounds) {
       this.bounds = bounds;
       let tiles = this.bbox2tiles(this.boundsToBbox(bounds), this.getZoomForTiles())
-      if (this.activeLayers.find(layer => layer.name === this.layerNames[0])) {
+      if (this.facilityFilter) {
         this.$store.dispatch(
           "getFacilitiesByTiles",
           {
@@ -276,7 +280,7 @@ export default {
         )
       }
 
-      switch (this.baseLayer.name) {
+      switch (this.baseLayer?.name) {
         case this.layerNames[1]:
           if (this.isBigHexes) {
             this.$store.dispatch("getDensityBigHexes",{tiles});

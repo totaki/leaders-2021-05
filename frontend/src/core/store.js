@@ -21,7 +21,8 @@ const state = {
   ],
   selectedFacility: null,
   selectedFacilityLayer: false,
-  facilityFilter: {department: null},
+  facilityFilter: null,
+  sportFilter: null,
   facilityReport: {
     name: "",
     availability: 1,
@@ -60,6 +61,7 @@ const getters = {
   availabilities: state => state.availabilities,
   selectedFacility: state => state.selectedFacility,
   facilityFilter: state => state.facilityFilter,
+  sportFilter: state => state.sportFilter,
   facilityReport: state => state.facilityReport,
   newFacilities: state => state.newFacilities,
   selectedHexes: state => state.selectedHexes,
@@ -102,7 +104,7 @@ const actions = {
     commit("SET_SELECTED_HEXES", hex)
   },
   getUnitingBigHexes: ({dispatch},{tiles}) => {
-    dispatch('getHexes',{tiles,api: api.getUnitingBigHexes})
+    dispatch('getHexes',{tiles,api: api.getUnitingBigHexes,filter: state.sportFilter})
   },
   getDensityBigHexes: ({dispatch},{tiles}) => {
     dispatch('getHexes',{tiles,api: api.getPopulationBigHexes})
@@ -111,7 +113,7 @@ const actions = {
     dispatch('getHexes',{tiles,api: api.getSportBigHexes})
   },
   getUnitingSmallHexes: ({dispatch},{tiles}) => {
-    dispatch('getHexes',{tiles,api: api.getUnitingSmallHexes})
+    dispatch('getHexes',{tiles,api: api.getUnitingSmallHexes,filter: state.sportFilter})
   },
   getDensitySmallHexes: ({dispatch},{tiles}) => {
     dispatch('getHexes',{tiles,api: api.getPopulationSmallHexes})
@@ -122,10 +124,10 @@ const actions = {
   getSportIntersectionSmallHexes: ({dispatch},{tiles}) => {
     dispatch('getHexes',{tiles,api: api.getSportIntersectionSmallHexes})
   },
-  getHexes: ({commit},{ tiles, api}) => {
+  getHexes: ({commit},{ tiles, api, filter}) => {
     if (JSON.stringify(state.lastDensityTiles) === JSON.stringify(tiles)) return;
     commit("SET_LAST_DENSITY_TILES", tiles)
-    const requests = tiles.map(([x, y, zoom]) => api(zoom, x, y))
+    const requests = tiles.map(([x, y, zoom]) => api(zoom, x, y, filter))
     let hexes = []
     axios.all(requests).then(axios.spread((...responses) => {
       for (const response of responses) {
@@ -199,6 +201,9 @@ const mutations = {
   },
   SET_FACILITY_FILTER: (state, item) => {
     state.facilityFilter = item
+  },
+  SET_SPORT_FILTER: (state, item) => {
+    state.sportFilter = item
   },
   SET_FACILITY_REPORT: (state, item) => {
     state.facilityReport = item
