@@ -48,8 +48,8 @@ class BaseHexViewSet(ReadOnlyModelViewSet, ABC):
         if self.action == "hexes_report":
             hex_ids = self.request.query_params.getlist("ids", [])
             hex_ids = [int(hex_id) for hex_id in hex_ids]
-            return super().filter_queryset(queryset.filter(pk__in=hex_ids))
-        if self.action in ("list", "sport_density"):
+            queryset = queryset.filter(pk__in=hex_ids)
+        elif self.action in ("list", "sport_density"):
             sport_ids = self.request.query_params.getlist("sports", [])
             area_type = self.request.query_params.get("area_type", None)
             availability = self.request.query_params.get("availability", None)
@@ -69,13 +69,18 @@ class BaseHexViewSet(ReadOnlyModelViewSet, ABC):
                 areas_filter = filters[0]
                 for filter_ in filters:
                     areas_filter &= filter_
-
-            return super().filter_queryset(
-                self.queryset
-                .populated()
-                .annotate_areas(areas_filter=areas_filter)
-                .annotate_square_by_person()
-            )
+            if self.action == 'sport_density':
+                queryset = (
+                    self.queryset
+                        .annotate_areas(areas_filter=areas_filter)
+                )
+            else:
+                queryset = (
+                    self.queryset
+                        .populated()
+                        .annotate_areas(areas_filter=areas_filter)
+                        .annotate_square_by_person()
+                )
         return super().filter_queryset(queryset)
 
     @action(detail=False, url_path="sport-density")
