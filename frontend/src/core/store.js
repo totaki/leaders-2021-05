@@ -110,7 +110,7 @@ const actions = {
     dispatch('getHexes',{tiles,api: api.getPopulationBigHexes})
   },
   getSportBigHexes: ({dispatch},{tiles}) => {
-    dispatch('getHexes',{tiles,api: api.getSportBigHexes})
+    dispatch('getHexes',{tiles,api: api.getSportBigHexes,filter: state.sportFilter})
   },
   getUnitingSmallHexes: ({dispatch},{tiles}) => {
     dispatch('getHexes',{tiles,api: api.getUnitingSmallHexes,filter: state.sportFilter})
@@ -119,7 +119,7 @@ const actions = {
     dispatch('getHexes',{tiles,api: api.getPopulationSmallHexes})
   },
   getSportSmallHexes: ({dispatch},{tiles}) => {
-    dispatch('getHexes',{tiles,api: api.getSportSmallHexes})
+    dispatch('getHexes',{tiles,api: api.getSportSmallHexes,filter: state.sportFilter})
   },
   getSportIntersectionSmallHexes: ({dispatch},{tiles}) => {
     dispatch('getHexes',{tiles,api: api.getSportIntersectionSmallHexes})

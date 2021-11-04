@@ -30,12 +30,10 @@
 
         <v-list nav v-if="currentMenu===1">
           <v-list-item-group>
-        <v-list-item @click="currentMenu = 0"><v-icon left>mdi-chevron-left</v-icon>Назад</v-list-item>
+            <v-list-item @click="currentMenu = 0"><v-icon left>mdi-chevron-left</v-icon>Назад</v-list-item>
             <v-divider/>
-            <v-list-item>
-              <div class="text-body-2 mx-4 mt-4">Раздел фильтрации слоя с плотностью населения и спортивных объектов</div>
-            </v-list-item>
           </v-list-item-group>
+          <div class="text-body-2 mx-4 mt-4">Раздел фильтрации для слоя с плотностью спортивных объектов и слоя с объединением плотностей населениея и спортивных объектов</div>
           <v-list dense nav>
             <v-list-item>
               <v-list-item-content>
