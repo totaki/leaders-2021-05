@@ -109,7 +109,7 @@ def load_data_hexes(model, filename):
 def load_color_bins():
     if SquareColorBins.objects.all().exists():
         return
-    sport_ids = SportType.objects.all().values_list('id', flat=True)
+    sport_ids = list(SportType.objects.all().values_list('id', flat=True))
     sport_ids.append(None)
     availabilities = list(range(1, 5))
     availabilities.append(None)
