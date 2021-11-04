@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer, Serializer
+from rest_framework.serializers import ModelSerializer
 
-from sport_density.models import DataHexSmall, DataHexBig
+from sport_density.models import DataHexSmall, DataHexBig, SquareColorBins, SquarePerPersonColorBins
 
 
 class BaseDataHexSmallSerializer(ModelSerializer):
@@ -55,3 +55,17 @@ class BaseHexIntersectionsSerializer(ModelSerializer):
     class Meta:
         model = DataHexSmall
         fields = "__all__"
+
+
+class SquareColorBinsSerializer(ModelSerializer):
+
+    class Meta:
+        model = SquareColorBins
+        fields = ("sport_id", "availability", "is_big_hexes", "bins")
+
+
+class SquarePerPersonColorBinsSerializer(ModelSerializer):
+
+    class Meta:
+        model = SquarePerPersonColorBins
+        fields = ("sport_id", "availability", "is_big_hexes", "bins")
