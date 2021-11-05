@@ -7,10 +7,10 @@
           <v-list-item >
             <v-list-item-content>
               <v-list-item-title class="text-h6">
-                Application
+                Интерактивная карта
               </v-list-item-title>
               <v-list-item-subtitle>
-                subtext
+                спортивных объектов
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
@@ -21,7 +21,7 @@
                 <v-list-item-title>Аналитика</v-list-item-title>
               </v-list-item>
               <v-list-item @click="currentMenu = 2">
-                <v-list-item-title>Объекты</v-list-item-title>
+                <v-list-item-title>Отображаемые объекты</v-list-item-title>
               </v-list-item>
             </v-list-item-group>
           </v-list>
@@ -30,10 +30,10 @@
 
         <v-list nav v-if="currentMenu===1">
           <v-list-item-group>
-            <v-list-item @click="currentMenu = 0"><v-icon left>mdi-chevron-left</v-icon>Назад</v-list-item>
+            <v-list-item @click="currentMenu = 0" class="primary--text"><v-icon left class="primary--text">mdi-chevron-left</v-icon><span class="primary--text">Назад</span></v-list-item>
             <v-divider/>
           </v-list-item-group>
-          <div class="text-body-2 mx-4 mt-4">Раздел фильтрации для слоя с плотностью спортивных объектов и слоя с объединением плотностей населениея и спортивных объектов</div>
+          <div class="text-subtitle-1 mx-4 mt-4">Фильтр спортивных объектов включаемых в аналитику</div>
           <v-list dense nav>
             <v-list-item>
               <v-list-item-content>
@@ -83,7 +83,7 @@
                         v-on:change="(val) => sportFilter.department = val"
                         item-text="name"
                         item-value="id"
-                        label="Ведомостная пренадлежность"
+                        label="Ведомство"
                 ></v-autocomplete>
               </v-list-item-content>
             </v-list-item>
@@ -103,15 +103,15 @@
 
         <v-list nav v-if="currentMenu===2">
           <v-list-item-group >
-            <v-list-item @click="currentMenu = 0"><v-icon left>mdi-chevron-left</v-icon>Назад</v-list-item>
+            <v-list-item @click="currentMenu = 0"><v-icon left class="primary--text">mdi-chevron-left</v-icon><span class="primary--text">Назад</span></v-list-item>
             <v-divider/>
-              <div class="text-body-2 mx-4 mt-4">Раздел фильтрации спортивных объектов</div>
+              <div class="text-subtitle-1 mx-4 mt-4 pb-0">Фильтр отображаемых спортивных объектов</div>
           </v-list-item-group>
           <v-list dense nav>
             <v-list-item>
               <v-list-item-content>
                 <v-text-field
-                        label="Название спортивного объекта"
+                        label="Название спортобъекта"
                         :value="filter.name"
                         @input="(val) => filter.name = val"
                 ></v-text-field>
@@ -120,7 +120,7 @@
             <v-list-item>
               <v-list-item-content>
                 <v-text-field
-                        label="Название спортивной зоны"
+                        label="Название спортзоны"
                         :value="filter.area_name"
                         @input="(val) => filter.area_name = val"
                 ></v-text-field>
@@ -144,7 +144,7 @@
               <v-list-item-content>
                 <v-autocomplete
                         clearable
-                        label="Тип спортивной зоны"
+                        label="Тип спортзоны"
                         :items="areaTypes"
                         :value="filter.area_type"
                         item-text="name"
@@ -175,7 +175,7 @@
                         :value="filter.department"
                         item-text="name"
                         item-value="id"
-                        label="Ведомостная пренадлежность"
+                        label="Ведомство"
                 ></v-autocomplete>
               </v-list-item-content>
             </v-list-item>
@@ -204,7 +204,7 @@
       <v-navigation-drawer  hide-overlay stateless  v-model='infoDrawer' app>
         <v-card v-if="facilityReport" elevation="0">
           <v-card-actions >
-            <v-list-item @click="closeInfo"><v-icon left>mdi-chevron-left</v-icon> Назад</v-list-item>
+            <v-list-item @click="closeInfo"><v-icon left class="primary--text">mdi-chevron-left</v-icon> Назад</v-list-item>
           </v-card-actions>
           <v-divider/>
           <v-card-title>
@@ -232,13 +232,13 @@
                   </v-expansion-panel-header>
                   <v-expansion-panel-content>
                     <div>
-                      <strong>Square:</strong> {{area.square}} km
+                      <strong>Площадь:</strong> {{area.square}} км<sup>2</sup>
                     </div>
                     <div >
-                      <strong>Area type:</strong> {{areaTypes.find(type => type.id === area.type).name}}
+                      <strong>Спортивные зоны:</strong> {{areaTypes.find(type => type.id === area.type).name}}
                     </div>
                     <div>
-                      <strong>Sports:</strong> {{sportTypes.filter( type => area.sports.find(el => el === type.id)).map(el=> el.name).join(', ')}}
+                      <strong>Виды спорта:</strong> {{sportTypes.filter( type => area.sports.find(el => el === type.id)).map(el=> el.name).join(', ')}}
                     </div>
                   </v-expansion-panel-content>
                 </v-expansion-panel>
