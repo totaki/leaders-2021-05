@@ -86,7 +86,7 @@ class BaseHexViewSet(ReadOnlyModelViewSet, ABC):
 
     @action(detail=False, url_path="hexes-report")
     def hexes_report(self, request, *args, **kwargs):
-        qs = self.get_queryset()
+        qs = self.filter_queryset(self.get_queryset())
         if not qs:
             return Response([])
         hexes = []
@@ -105,7 +105,6 @@ class BaseHexViewSet(ReadOnlyModelViewSet, ABC):
         area_types_coverage = {}
         for row in areas.get_sports_coverage():
             area_types_coverage[row["type"]] = row["square__sum"]
-        sports_counter = Counter(all_sports)
         areas_stats = areas.get_stats()
         area_types_counter = Counter(areas_stats["area_types"])
         polygon = h3.h3_set_to_multi_polygon(hexes, geo_json=True)
@@ -116,9 +115,10 @@ class BaseHexViewSet(ReadOnlyModelViewSet, ABC):
                     "coordinates": polygon,
                 },
                 "total_square": total_square,
+                "total_population": total_population,
                 "area_types_counter": area_types_counter,
                 "total_sport_square": areas_stats["total_sport_square"],
-                "sports_counts": sports_counter,
+                "sports": all_sports,
                 "area_types_coverage": area_types_coverage,
             }
         )
