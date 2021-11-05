@@ -63,7 +63,7 @@ export default {
         },
         selectHex(hex,hexPoly){
             if (this.canMultiSelect) {
-                if (!this.getSelected.find(hex => hex === hexPoly.id)) {
+                if (!this.getSelected.find(hex => hex.hexPoly.id === hexPoly.id)) {
                     hex.setStyle({color: 'red'})
                     this.$store.dispatch("getSelectedHexes", [{hexPoly,hex}, ...this.getSelected])
                 } else {
