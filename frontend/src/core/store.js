@@ -264,11 +264,7 @@ const mutations = {
     state.lastDensityTiles = []
   },
   SET_SELECTED_HEXES: (state, item) => {
-    if (state.selectedHexes.find( hex=>hex === item)) {
-      state.selectedHexes.splice(state.selectedHexes.findIndex(hex => hex === item),1)
-      return
-    }
-    state.selectedHexes.push(item)
+    state.selectedHexes = item
   },
   CLEAR_SELECTED_HEXES: (state) => {
     state.selectedHexes = []

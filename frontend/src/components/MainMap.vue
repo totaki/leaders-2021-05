@@ -17,15 +17,15 @@
         <v-btn @click='handleLayerControl' >
           <v-icon small>mdi-layers-triple-outline</v-icon>
         </v-btn>        
-        <v-btn @click='canSelect = !canSelect' :disabled="baseLayer && baseLayer.name !== layerNames[3]">
+        <v-btn @click='multiSelect = !multiSelect' :disabled="baseLayer && baseLayer.name !== layerNames[3]">
           <v-icon small>mdi-select-multiple</v-icon>
         </v-btn>
       </v-btn-toggle>
     </l-control>
     <l-control-layers ref="control" :collapsed="false" position="topright"></l-control-layers>
-    <l-control v-if="selectedHexes.length" position="topright">
+    <l-control v-if="selectedHexes.length && multiSelect" position="topright">
       <v-btn  
-        :to="{ path: `/report/${isBigHexes}/${JSON.stringify(selectedHexes)}`}"
+        :to="{ path: `/report/${isBigHexes}/${JSON.stringify(selectedHexes.map(el=>el.hexPoly.id))}`}"
         target="_blank" 
         depressed 
         fab
@@ -37,6 +37,46 @@
         </v-btn>
     </l-control>
 
+    <l-control position="bottomright" v-if="baseLayer && baseLayer.name !== 'Отключено'">
+      <div v-if="!showHexLegend">
+        <v-sheet width="150" class="legend" rounded>
+          <div>
+            <div v-if="baseLayer.name === layerNames[1]" >
+              <div class="text-caption">Плотность населения</div>
+              <div v-for="(el,idx) in hexBins.slice(0,hexBins.length - 1)" :key="idx">
+                <i :style="{background: colors[0][idx+1]}"></i>
+                {{Math.round(el)}} {{hexBins[idx + 1] ? ' &ndash; ' + Math.round(hexBins[idx + 1]) : "+"}}<br>
+              </div>
+            </div>
+            <div v-if="baseLayer.name === layerNames[2]" >
+              <div class="text-caption">Площадь спортобъектов</div>
+              <div v-for="(el,idx) in hexBins.slice(0,hexBins.length - 1)" :key="idx">
+                <i :style="{background: colors[1][idx+1]}"></i>
+                {{Math.round(el)}} {{hexBins[idx + 1] ? ' &ndash; ' + Math.round(hexBins[idx + 1]) : "+"}}<br>
+              </div>
+            </div>
+            <div v-if="baseLayer.name === layerNames[3]" >
+              <div class="text-caption">Площадь спортобъектов на человека</div>
+              <div v-for="(el,idx) in hexBins.slice(0,hexBins.length - 1)" :key="idx">
+                <i :style="{background: colors[1][idx+1]}"></i>
+                {{Math.round(el)}} {{hexBins[idx + 1] ? ' &ndash; ' + Math.round(hexBins[idx + 1]) : "+"}}<br>
+              </div>
+            </div>
+          </div>
+        </v-sheet>
+      </div>
+      <div v-else>
+        <v-sheet class="hexLegend" rounded>
+          <div class="text-caption">Население: {{this.selectedHexes[0].hexPoly.population}}</div>
+          <div v-if="this.selectedHexes[0].hexPoly.square" class="text-caption">Площадь спортзон
+            {{Math.round(this.selectedHexes[0].hexPoly.square)}}
+          </div>
+          <div v-if="this.selectedHexes[0].hexPoly.areas_count" class="text-caption">Количество спортивных зон:
+            {{Math.round(this.selectedHexes[0].hexPoly.areas_count)}}
+          </div>
+        </v-sheet>
+      </div>
+    </l-control>
 
     <l-tile-layer ref="tileLayer" :url="url" :attribution="attribution"></l-tile-layer>
     <l-layer-group ref="circles" :visible='true' :name="layerNames[0]" layer-type="overlay">
@@ -49,9 +89,8 @@
     <hexes-layer-group 
       :name="layerNames[1]" 
       :hexes="baseLayer && baseLayer.name === layerNames[1]? hexes : []"
-      :colormap="[{index: 0, rgb:[255,0,0]},{index: 0.5, rgb: [255,125,125]},{index: 1, rgb: [255,255,255]}]" 
+      :colormap="colors[0]"
       color="red" 
-      :canSelect='canSelect'
       :bins="hexBins"
       opacityBy="population" 
       layerType="base"
@@ -65,11 +104,10 @@
     <hexes-layer-group 
       :name="layerNames[2]" 
       :hexes="baseLayer && baseLayer.name === layerNames[2]? hexes : []"
-      colormap="greens" 
+      :colormap="colors[1]"
       color="green" 
       :bins="hexBins"
-      :canSelect='canSelect'
-      opacityBy="square" 
+      opacityBy="square"
       layerType="base">
         <template v-slot:popup="{prop}">
           <p>Areas count: {{prop.areas_count }}</p>
@@ -80,11 +118,11 @@
     <hexes-layer-group 
       :name="layerNames[3]" 
       :hexes="baseLayer && baseLayer.name === layerNames[3]? hexes : []"
-      colormap="greens" 
+      :colormap="colors[1]"
       color="green"
       :bins="hexBins"
-      :canSelect='canSelect'
-      opacityBy="square_by_person" 
+      :canMultiSelect="multiSelect"
+      opacityBy="square_by_person"
       layerType="base">
       <template v-slot:popup="{prop}">
         <p>Areas count: {{ prop.areas_count }}</p>
@@ -101,6 +139,7 @@ import L from "leaflet";
 import icon from "../icon.png";
 import "leaflet.markercluster/dist/leaflet.markercluster-src"
 import HexesLayerGroup from './HexesLayerGroup.vue';
+import Colormap from "colormap";
 
 export default {
   components: {
@@ -145,7 +184,8 @@ export default {
     },
     hexBins(){
       return this.$store.getters.hexBins;
-    }
+    },
+
   },
   watch: {
     selectedFacility(newVal) {
@@ -183,7 +223,19 @@ export default {
       this.$refs.circles.mapObject.addLayer(this.markers)
       this.$store.commit('CLEAR_NEW_FACILITIES_BUFFER')
     },
-
+    hexBins(){
+      this.colors = [
+        this.createColorMap([{index: 0, rgb:[255,0,0]},{index: 0.5, rgb: [255,125,125]},{index: 1, rgb: [255,255,255]}]),
+        this.createColorMap('greens'),
+      ]
+    },
+    selectedHexes(val){
+      if (!val.length) {
+        this.showHexLegend = false
+        return;
+      }
+      this.showHexLegend = true
+    },
   },
   data () {
     return {
@@ -210,16 +262,23 @@ export default {
       zoomBorder: 14,
       activeLayers: [],
       baseLayer: null,
-      canSelect: false,
-      unitingBigHexBins: [4, 6, 9, 13, 18, 27, 45, 114, 681, 2928, 11948, 48660],
-      unitingSmallHexBins: [51, 81, 236, 3016, 8978, 22328, 34320, 43541, 54268, 63705, 100283, 111083],
-      populationBigHexBins: [27, 379, 1900, 6627, 11525, 17106, 23040, 26530, 43127],
-      populationSmallHexBins: [5, 22, 360, 1597, 2661, 3805, 4739, 5333, 11000],
-      sportSmallHexBins: [124, 6866, 26184, 64665, 94201, 118899, 140914, 167049, 192377, 238084, 300000],
-      sportBigHexBins: [144,6520,27080,64477,95195,119351,142339,167483,193332,238483,445060]
+      canSelect: true,
+      multiSelect: false,
+      showHexLegend: false,
+      colors: [
+        this.createColorMap([{index: 0, rgb:[255,0,0]},{index: 0.5, rgb: [255,125,125]},{index: 1, rgb: [255,255,255]}]),
+        this.createColorMap('greens'),
+      ],
     };
   },
   methods: {
+    createColorMap(colorMap){
+      return Colormap({
+        colormap: colorMap,
+        nshades: this.hexBins?.length,
+        format: 'hex',
+        alpha: 1}).reverse();
+    },
     handleLayerControl(){
       const classes = this.$el.querySelector('.leaflet-control-layers').classList;
       if (classes.contains('hide')) {
@@ -444,5 +503,18 @@ export default {
   height: 40px !important;
   border-bottom-left-radius: 20px !important;
   border-bottom-right-radius: 20px !important;
+}
+.legend {
+  padding: 5px;
+}
+.legend i{
+  width: 18px;
+  height: 18px;
+  float: left;
+  margin-right: 8px;
+  opacity: 0.7;
+}
+.hexLegend{
+  padding: 5px;
 }
 </style>
