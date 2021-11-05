@@ -153,7 +153,7 @@ def calculate_color_bins_for_hexes_by_square(sport_ids, availability, is_big_hex
 def calculate_color_bins_for_hexes_by_square_per_person(sport_ids, availability, is_big_hexes=True):
     areas_filter = get_areas_filter(sport_ids=sport_ids, availability=availability)
     if is_big_hexes:
-        bins_by_square_per_person = DataHexSmall.objects.color_bins_by_square(areas_filter)
+        bins_by_square_per_person = DataHexBig.objects.color_bins_by_square_per_person(areas_filter)
     else:
         bins_by_square_per_person = DataHexSmall.objects.color_bins_by_square_per_person(areas_filter)
     return bins_by_square_per_person
