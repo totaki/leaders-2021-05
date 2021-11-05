@@ -96,8 +96,8 @@ class ColorBins(models.Model):
 
 
 class SquareColorBins(models.Model):
-    sport_id = models.PositiveIntegerField()
-    availability = models.PositiveIntegerField()
+    sport_id = models.PositiveIntegerField(null=True)
+    availability = models.PositiveIntegerField(null=True)
     is_big_hexes = models.BooleanField(default=True)
     bins = ArrayField(models.IntegerField(), size=20)
 
