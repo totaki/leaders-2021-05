@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from collections import Counter
 
 import h3
@@ -123,6 +123,10 @@ class BaseHexViewSet(ReadOnlyModelViewSet, ABC):
             }
         )
 
+    @abstractmethod
+    def get_areas(self):
+        pass
+
 
 class SmallHexViewSet(BaseHexViewSet):
     queryset = DataHexSmall.objects.all()
@@ -179,20 +183,25 @@ class ColorBinsViewSet(ReadOnlyModelViewSet, ABC):
     model = SquareColorBins
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        sport_id = self.request.query_params.get("sport_id", None)
+        availability = self.request.query_params.get("availability", None)
+        is_big_hexes = self.request.query_params.get("is_big_hexes", None)
+        if sport_id is not None:
+            sport_id = int(sport_id)
+            sport_ids = [sport_id]
+        else:
+            sport_ids = None
+        if availability:
+            availability = int(availability)
+        if is_big_hexes is not None:
+            is_big_hexes = is_big_hexes == 'true'
+
+        queryset = self.get_queryset().filter(sport_id=sport_id, availability=availability, is_big_hexes=is_big_hexes)
         if not queryset:
-            sport_id = self.request.query_params.get("sport_id", None)
-            availability = self.request.query_params.get("availability", None)
-            is_big_hexes = self.request.query_params.get("is_big_hexes", None)
-            if sport_id is not None:
-                sport_id = [int(sport_id)]
-            if availability:
-                availability = int(availability)
-            if is_big_hexes is not None:
-                is_big_hexes = is_big_hexes == 'true'
-            bins = self.__class__.calculation_func(sport_id, availability, is_big_hexes)
+
+            bins = self.__class__.calculation_func(sport_ids, availability, is_big_hexes)
             queryset = self.model.objects.create(
-                sport_id=sport_id[0],
+                sport_id=sport_id,
                 availability=availability,
                 bins=bins,
                 is_big_hexes=is_big_hexes
