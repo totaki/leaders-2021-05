@@ -5,7 +5,6 @@
 </template>
 <script>
 import { LLayerGroup  } from 'vue2-leaflet';
-import Colormap from 'colormap';
 import L from "leaflet";
 
 export default {
@@ -13,13 +12,15 @@ export default {
         hexes:{},
         isBigHexes:{},
         name:{},
-        canSelect:{default: false,type: Boolean},
+        canSelect:{default: true,type: Boolean},
+        canMultiSelect:{default: false,type: Boolean},
         'layer-type': {default: 'base',type: String},
         options:{},
         opacityBy:{},
         bins:{},
         color:{},
         colormap:{},
+
     },
     components: {
         LLayerGroup,
@@ -31,6 +32,7 @@ export default {
     watch: {
         hexes: function (newVal) {
             if (!newVal) return;
+            this.lastSelected = null
             this.$refs.layer.mapObject.removeLayer(this.hexArray)
             this.hexArray.clearLayers();
             newVal.forEach(el => {
@@ -41,37 +43,51 @@ export default {
                     color: this.getSelected.find(hex => hex === el.id)? 'red' : ''
                 }
                 let hex = L.polygon(el.polygon.coordinates[0],options);
-                hex.on('click',()=> this.canSelect && this.selectHex(hex,el.id))
+                hex.on('click',()=> this.canSelect && this.selectHex(hex,el))
                 this.hexArray.addLayer(hex)
             });
-            console.log(this.$slots)
             this.$refs.layer.mapObject.addLayer(this.hexArray)
         }
     },
     data() {
         return {
             hexArray: L.layerGroup(),
-            selected: []
+            lastSelected: null
         }
     },
     methods: {
         getColorMap: function (opacityBy,bins) {
-            let colors = Colormap({
-                colormap: this.colormap,
-                nshades: bins.length,
-                format: 'hex',
-                alpha: 1}).reverse();
             let colorIdx = bins.findIndex( bin => opacityBy < bin)
 
-            return colorIdx === -1? colors[colors.length - 1] : colors[colorIdx]
+            return colorIdx === -1? this.colormap[this.colormap.length - 1] : this.colormap[colorIdx]
         },
-        selectHex(hex,id){
-            if (!this.getSelected.find(hex => hex===id)) {
-                hex.setStyle({color:'red'})
+        selectHex(hex,hexPoly){
+            if (this.canMultiSelect) {
+                if (!this.getSelected.find(hex => hex === hexPoly.id)) {
+                    hex.setStyle({color: 'red'})
+                    this.$store.dispatch("getSelectedHexes", [{hexPoly,hex}, ...this.getSelected])
+                } else {
+                    hex.setStyle({color: ''})
+                    this.$store.dispatch("getSelectedHexes", this.getSelected.filter(el => el.hexPoly.id !== hexPoly.id))
+                }
             } else {
-                hex.setStyle({color:''})
+                if (this.getSelected.length > 1) {
+                    this.getSelected.forEach( el => {
+                        el.hex.setStyle({color:''})
+                    })
+                    this.$store.dispatch("getSelectedHexes",[])
+                }
+                if (this.lastSelected === hex) {
+                    hex.setStyle({color: ''})
+                    this.lastSelected = null
+                    this.$store.dispatch("getSelectedHexes",[])
+                } else {
+                    hex.setStyle({color: 'red'})
+                    this.lastSelected?.setStyle({color: ''})
+                    this.lastSelected = hex
+                    this.$store.dispatch("getSelectedHexes",[{hexPoly,hex}])
+                }
             }
-            this.$store.dispatch("getSelectedHexes",id)
         }
     },
 }

@@ -1,16 +1,18 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from collections import Counter
 
 import h3
-from django.db.models import Q
+from django_filters import rest_framework as filters
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework_gis.filters import TMSTileFilter, InBBoxFilter
 
+from facilities.management.commands.load_sport_objects import calculate_color_bins_for_hexes_by_square, \
+    calculate_color_bins_for_hexes_by_square_per_person
 from facilities.models import SportsArea
-from sport_density.models import DataHexSmall, DataHexBig
+from sport_density.models import DataHexSmall, DataHexBig, get_areas_filter, SquareColorBins, SquarePerPersonColorBins
 from sport_density.serializers import (
     DataHexSmallSerializer,
     BaseHexIntersectionsSerializer,
@@ -18,7 +20,7 @@ from sport_density.serializers import (
     BaseDataHexSmallSerializer,
     BaseDataHexBigSerializer,
     DetailDataHexBigSerializer,
-    DetailDataHexSmallSerializer,
+    DetailDataHexSmallSerializer, SquareColorBinsSerializer, SquarePerPersonColorBinsSerializer,
 )
 
 
@@ -54,21 +56,12 @@ class BaseHexViewSet(ReadOnlyModelViewSet, ABC):
             area_type = self.request.query_params.get("area_type", None)
             availability = self.request.query_params.get("availability", None)
             department = self.request.query_params.get("department", None)
-            areas_filter = None
-            filters = []
-            if sport_ids:
-                filters.append(Q(facilities__areas__sports__contains=sport_ids))
-            if area_type is not None:
-                filters.append(Q(facilities__areas__type=area_type))
-            if availability is not None:
-                filters.append(Q(facilities__availability=availability))
-            if department is not None:
-                filters.append(Q(facilities__department=department))
-
-            if filters:
-                areas_filter = filters[0]
-                for filter_ in filters:
-                    areas_filter &= filter_
+            areas_filter = get_areas_filter(
+                sport_ids=sport_ids,
+                area_type=area_type,
+                availability=availability,
+                department=department
+            )
             if self.action == 'sport_density':
                 queryset = (
                     self.queryset
@@ -130,6 +123,10 @@ class BaseHexViewSet(ReadOnlyModelViewSet, ABC):
             }
         )
 
+    @abstractmethod
+    def get_areas(self):
+        pass
+
 
 class SmallHexViewSet(BaseHexViewSet):
     queryset = DataHexSmall.objects.all()
@@ -174,3 +171,56 @@ class HexIntersectionViewSet(ReadOnlyModelViewSet):
     bbox_filter_field = "polygon"
     bbox_filter_include_overlapping = True
     pagination_class = LimitOffsetPagination
+
+
+class ColorBinsViewSet(ReadOnlyModelViewSet, ABC):
+    queryset = SquareColorBins.objects.all()
+    serializer_class = SquareColorBinsSerializer
+    pagination_class = LimitOffsetPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_fields = ("sport_id", "availability", "is_big_hexes")
+    calculation_func = calculate_color_bins_for_hexes_by_square
+    model = SquareColorBins
+
+    def list(self, request, *args, **kwargs):
+        sport_id = self.request.query_params.get("sport_id", None)
+        availability = self.request.query_params.get("availability", None)
+        is_big_hexes = self.request.query_params.get("is_big_hexes", None)
+        if sport_id is not None:
+            sport_id = int(sport_id)
+            sport_ids = [sport_id]
+        else:
+            sport_ids = None
+        if availability:
+            availability = int(availability)
+        if is_big_hexes is not None:
+            is_big_hexes = is_big_hexes == 'true'
+
+        queryset = self.get_queryset().filter(sport_id=sport_id, availability=availability, is_big_hexes=is_big_hexes)
+        if not queryset:
+
+            bins = self.__class__.calculation_func(sport_ids, availability, is_big_hexes)
+            queryset = self.model.objects.create(
+                sport_id=sport_id,
+                availability=availability,
+                bins=bins,
+                is_big_hexes=is_big_hexes
+            )
+            queryset = [queryset]
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class SquareColorBinsViewSet(ColorBinsViewSet):
+    queryset = SquareColorBins.objects.all()
+    model = SquareColorBins
+    serializer_class = SquareColorBinsSerializer
+    calculation_func = calculate_color_bins_for_hexes_by_square
+
+
+class SquarePerPersonColorBinsViewSet(ColorBinsViewSet):
+    queryset = SquarePerPersonColorBins.objects.all()
+    model = SquarePerPersonColorBins
+    serializer_class = SquarePerPersonColorBinsSerializer
+    calculation_func = calculate_color_bins_for_hexes_by_square_per_person

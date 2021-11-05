@@ -282,9 +282,6 @@ export default {
     isFacilityFilterSet(){
       return !!this.$store.getters.facilityFilter
     },
-    showFilter() {
-      return this.$store.getters.selectedFacilityLayer;
-    }
   },
   watch: {
     facilityReport(val){

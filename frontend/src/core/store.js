@@ -20,7 +20,7 @@ const state = {
     {id: 1, name: "Городского значения"},
   ],
   selectedFacility: null,
-  selectedFacilityLayer: false,
+  selectedBaseLayer: null,
   facilityFilter: null,
   sportFilter: null,
   facilityReport: {
@@ -49,7 +49,10 @@ const state = {
   newFacilities: [],
   lastDensityTiles: [],
   selectedHexes: [],
-  hexReport: null
+  hexReport: null,
+  hexBins: [],
+  layerNames: ["Спортивные объекты","Плотность населения","Плотность спортивных объектов","Объединение населения и объектов"],
+
 }
 
 const getters = {
@@ -66,7 +69,9 @@ const getters = {
   newFacilities: state => state.newFacilities,
   selectedHexes: state => state.selectedHexes,
   hexReport: state => state.hexReport,
-  selectedFacilityLayer: state => state.selectedFacilityLayer
+  selectedBaseLayer: state => state.selectedBaseLayer,
+  hexBins: state => state.hexBins,
+  layerNames: state => state.layerNames
 }
 
 const actions = {
@@ -168,15 +173,42 @@ const actions = {
       console.log(errors)
     })
   },
-  getHexReport({commit},{isBig,ids}){
-    if (isBig === 'true'){
-      api.getHexBigReport(ids).then( r => {
-        commit("SET_HEX_REPORT",r.data)
+  getHexReport({commit},{isBig,ids}) {
+    if (isBig === 'true') {
+      api.getHexBigReport(ids).then(r => {
+        commit("SET_HEX_REPORT", r.data)
       })
     } else {
-      api.getHexSmallReport(ids).then( r => {
-        commit("SET_HEX_REPORT",r.data)
+      api.getHexSmallReport(ids).then(r => {
+        commit("SET_HEX_REPORT", r.data)
       })
+    }
+  },
+  getHexBins({commit},params){
+    switch (state.selectedBaseLayer) {
+      case state.layerNames[1]:
+        if (params.is_big_hexes) {
+          console.log("GETTING BINS BIG POPULATION")
+          commit("SET_HEX_BINS", [27, 379, 1900, 6627, 11525, 17106, 23040, 26530, 43127])
+          break;
+        }
+        console.log("GETTING BINS SMALL POPULATION")
+        commit("SET_HEX_BINS", [5, 22, 360, 1597, 2661, 3805, 4739, 5333, 11000])
+        break;
+      case state.layerNames[2]:
+        api.getColorBinsBySquare(params)
+            .then(r => {
+              console.log("GETTING BINS",r.data[0].bins)
+              commit("SET_HEX_BINS",r.data[0].bins)
+            })
+        break;
+      case state.layerNames[3]:
+        api.getColorBinsBySquarePerPerson(params)
+            .then(r => {
+              console.log("GETTING BINS PER PERSON",r.data[0].bins)
+              commit("SET_HEX_BINS",r.data[0].bins)
+            })
+        break;
     }
   }
 }
@@ -232,11 +264,7 @@ const mutations = {
     state.lastDensityTiles = []
   },
   SET_SELECTED_HEXES: (state, item) => {
-    if (state.selectedHexes.find( hex=>hex === item)) {
-      state.selectedHexes.splice(state.selectedHexes.findIndex(hex => hex === item),1)
-      return
-    }
-    state.selectedHexes.push(item)
+    state.selectedHexes = item
   },
   CLEAR_SELECTED_HEXES: (state) => {
     state.selectedHexes = []
@@ -244,8 +272,11 @@ const mutations = {
   SET_HEX_REPORT: (state, item) => {
     state.hexReport = item
   },
-  SET_SELECTED_FACILITY_LAYER: (state, item) => {
-    state.selectedFacilityLayer = item
+  SET_BASE_LAYER: (state, item) => {
+    state.selectedBaseLayer = item
+  },
+  SET_HEX_BINS: (state,item) => {
+    state.hexBins = item
   }
 }
 
