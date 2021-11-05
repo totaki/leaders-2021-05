@@ -43,6 +43,8 @@ const getPopulationSmallHexes = (zoom, x, y) => api.get(`/data-hex/small-hex/pop
 const getSportSmallHexes = (zoom, x, y,filter) => api.get(`/data-hex/small-hex/sport-density?tile=${zoom}/${x}/${y}&limit=1500&${serialize(filter)}`)
 const getSportIntersectionSmallHexes = (zoom, x, y) => api.get(`/sport-density/small-hex-intersections?tile=${zoom}/${x}/${y}&limit=1500`)
 
+const getColorBinsBySquare = (params) => api.get(`/data-hex/color-bins-by-square?${serialize(params)}`)
+const getColorBinsBySquarePerPerson = (params) => api.get(`/data-hex/color-bins-by-square-per-person?${serialize(params)}`)
 
 export default {
   getDepartments,
@@ -60,4 +62,6 @@ export default {
   getSportIntersectionSmallHexes,
   getHexBigReport,
   getHexSmallReport,
+  getColorBinsBySquare,
+  getColorBinsBySquarePerPerson
 }

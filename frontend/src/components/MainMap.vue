@@ -52,7 +52,7 @@
       :colormap="[{index: 0, rgb:[255,0,0]},{index: 0.5, rgb: [255,125,125]},{index: 1, rgb: [255,255,255]}]" 
       color="red" 
       :canSelect='canSelect'
-      :bins="isBigHexes? populationBigHexBins : populationSmallHexBins" 
+      :bins="hexBins"
       opacityBy="population" 
       layerType="base"
       >
@@ -67,7 +67,7 @@
       :hexes="baseLayer && baseLayer.name === layerNames[2]? hexes : []"
       colormap="greens" 
       color="green" 
-      :bins="isBigHexes? sportBigHexBins : sportSmallHexBins"  
+      :bins="hexBins"
       :canSelect='canSelect'
       opacityBy="square" 
       layerType="base">
@@ -81,7 +81,8 @@
       :name="layerNames[3]" 
       :hexes="baseLayer && baseLayer.name === layerNames[3]? hexes : []"
       colormap="greens" 
-      color="green" :bins="isBigHexes? unitingBigHexBins : unitingSmallHexBins"  
+      color="green"
+      :bins="hexBins"
       :canSelect='canSelect'
       opacityBy="square_by_person" 
       layerType="base">
@@ -138,6 +139,12 @@ export default {
     },
     hexes() {
       return this.$store.getters.hexes;
+    },
+    layerNames(){
+      return this.$store.getters.layerNames;
+    },
+    hexBins(){
+      return this.$store.getters.hexBins;
     }
   },
   watch: {
@@ -162,6 +169,7 @@ export default {
       this.$store.commit("CLEAR_HEXES")
       this.$store.commit("CLEAR_LAST_DENSITY_TILES")
       this.$store.commit("CLEAR_SELECTED_HEXES")
+      this.updateHexBins();
       this.update(this.$refs.map.mapObject.getBounds())
     },
     facilities(fac) {
@@ -199,7 +207,6 @@ export default {
       greenSquareWeights: [
         686.5, 1092.0, 1720.0, 2734.8, 4956.0, 5000000.0
       ],
-      layerNames: ["Спортивные объекты","Плотность населения","Плотность спортивных объектов","Объединение населения и объектов"],
       zoomBorder: 14,
       activeLayers: [],
       baseLayer: null,
@@ -230,17 +237,25 @@ export default {
       this.$store.commit("CLEAR_HEXES")
       this.$store.commit("CLEAR_LAST_DENSITY_TILES")
       this.$store.commit("CLEAR_SELECTED_HEXES")
+      this.$store.commit("SET_BASE_LAYER",layer.name)
+      this.updateHexBins();
       this.update(this.$refs.map.mapObject.getBounds())
     },
     overlayadd: function(overlay){
       this.activeLayers.push(overlay)
-      this.$store.commit("SET_SELECTED_FACILITY_LAYER",true)
       this.update(this.$refs.map.mapObject.getBounds())
     },
     overlayremove: function(overlay){
       this.activeLayers.splice(this.activeLayers.indexOf(overlay),1)  
-      this.$store.commit("SET_SELECTED_FACILITY_LAYER",false)
       this.update(this.$refs.map.mapObject.getBounds())
+    },
+    updateHexBins: function(){
+      const payload = {
+        sport_id: this.sportFilter?.sports,
+        availability: this.sportFilter?.availability,
+        is_big_hexes: this.isBigHexes
+      }
+      this.$store.dispatch("getHexBins",payload)
     },
     getRadius: function (availability) {
       if (availability === 4) return 500;
@@ -310,9 +325,11 @@ export default {
       if (this.isBigHexes && zoom >= 14) {
         this.isBigHexes = false;
         this.$store.commit("CLEAR_SELECTED_HEXES")
+        this.updateHexBins();
       } else if (!this.isBigHexes && zoom < 14) {
         this.isBigHexes = true;
         this.$store.commit("CLEAR_SELECTED_HEXES")
+        this.updateHexBins();
       }
     },
     getOpacity: function (population) {
