@@ -97,7 +97,7 @@
                         <v-expansion-panel-header>
                             Список доступных видов спорта
                         </v-expansion-panel-header>
-                        <v-expansion-panel-content>
+                        <v-expansion-panel-content v-if="sportTypes">
                             <ul class="text-body-2 ml-4" v-for="sport in hexReport.sports" :key="sport">
                                 <li>{{sportTypes.find( ar => ar.id === +sport).name}}</li>
                             </ul>
@@ -107,7 +107,7 @@
                         <v-expansion-panel-header>
                             Суммарная площадь по типу спортивной зоны
                         </v-expansion-panel-header>
-                        <v-expansion-panel-content>
+                        <v-expansion-panel-content v-if="areaTypes">
                             <ul class="text-body-2 ml-4" v-for="area in Object.entries(hexReport.area_types_coverage)" :key="area[0]">
                                 <li>{{areaTypes.find( ar => ar.id === +area[0]).name}}: {{Math.round(area[1])}} м<sup>2</sup></li>
                             </ul>
@@ -117,7 +117,7 @@
                         <v-expansion-panel-header>
                             Количество спортивных зон
                         </v-expansion-panel-header>
-                        <v-expansion-panel-content>
+                        <v-expansion-panel-content v-if="areaTypes">
                             <ul class="text-body-2 ml-4" v-for="area in Object.entries(hexReport.area_types_counter)" :key="Math.random(area[0])">
                                 <li>{{areaTypes.find( ar => ar.id === +area[0]).name}}: {{Math.round(area[1])}} шт.</li>
                             </ul>
@@ -160,8 +160,7 @@ export default {
             return this.$store.getters.sportTypes;
         },
         sportAreasChartDataset() {
-            if (!this.hexReport) return;
-            console.log(this.areaTypes)
+            if (!this.hexReport || !this.areaTypes) return;
             return {
                 labels: Object.keys(this.hexReport.area_types_counter).map(type_id => this.areaTypes.find( ar => ar.id === +type_id).name),
                 datasets: [
@@ -188,10 +187,7 @@ export default {
         },
         center() {
             if (!this.hexReport) return ;
-            console.log(this.coordinates)
-            const center = this.getCentroid(this.coordinates)
-            console.log(center)
-            return center
+            return this.getCentroid(this.coordinates)
         },
         coordinates() {
             if (!this.hexReport) return ;
