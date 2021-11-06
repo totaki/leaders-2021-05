@@ -42,24 +42,24 @@
         <v-sheet width="150" class="legend" rounded>
           <div>
             <div v-if="baseLayer.name === layerNames[1]" >
-              <div class="text-caption">Плотность населения</div>
+              <div class="text-caption">Население, чел</div>
               <div v-for="(el,idx) in hexBins.slice(0,hexBins.length - 1)" :key="idx">
                 <i :style="{background: colors[0][idx+1]}"></i>
                 {{Math.round(el)}} {{hexBins[idx + 1] ? ' &ndash; ' + Math.round(hexBins[idx + 1]) : "+"}}<br>
               </div>
             </div>
             <div v-if="baseLayer.name === layerNames[2]" >
-              <div class="text-caption">Площадь спортобъектов</div>
+              <div class="text-caption">Площадь спортобъектов, м<sup>2</sup></div>
               <div v-for="(el,idx) in hexBins.slice(0,hexBins.length - 1)" :key="idx">
                 <i :style="{background: colors[1][idx+1]}"></i>
                 {{Math.round(el)}} {{hexBins[idx + 1] ? ' &ndash; ' + Math.round(hexBins[idx + 1]) : "+"}}<br>
               </div>
             </div>
             <div v-if="baseLayer.name === layerNames[3]" >
-              <div class="text-caption">Площадь спортобъектов на человека</div>
+              <div class="text-caption">Площадь спортобъектов на человека, м<sup>2</sup>/чел.</div>
               <div v-for="(el,idx) in hexBins.slice(0,hexBins.length - 1)" :key="idx">
                 <i :style="{background: colors[1][idx+1]}"></i>
-                {{Math.round(el)}} {{hexBins[idx + 1] ? ' &ndash; ' + Math.round(hexBins[idx + 1]) : "+"}}<br>
+                {{el.toFixed(2)}} {{hexBins[idx + 1] ? ' &ndash; ' + hexBins[idx + 1].toFixed(2) : "+"}}<br>
               </div>
             </div>
           </div>
@@ -67,12 +67,15 @@
       </div>
       <div v-else>
         <v-sheet class="hexLegend" rounded>
-          <div class="text-caption">Население: {{this.selectedHexes[0].hexPoly.population}}</div>
-          <div v-if="this.selectedHexes[0].hexPoly.square" class="text-caption">Площадь спортзон
-            {{Math.round(this.selectedHexes[0].hexPoly.square)}}
+          <div class="text-caption">Население: {{this.selectedHexes[0].hexPoly.population}} чел.</div>
+          <div v-if="this.selectedHexes[0].hexPoly.square || this.selectedHexes[0].hexPoly.square === null" class="text-caption">Площадь спортзон:
+            {{Math.round(this.selectedHexes[0].hexPoly.square)}} м<sup>2</sup>
           </div>
-          <div v-if="this.selectedHexes[0].hexPoly.areas_count" class="text-caption">Количество спортивных зон:
+          <div v-if="this.selectedHexes[0].hexPoly.areas_count || this.selectedHexes[0].hexPoly.areas_count === 0" class="text-caption">Количество спортивных зон:
             {{Math.round(this.selectedHexes[0].hexPoly.areas_count)}}
+          </div>
+          <div v-if="this.selectedHexes[0].hexPoly.square && this.selectedHexes[0].hexPoly.population" class="text-caption">Площадь спортзон на человека:
+            {{(this.selectedHexes[0].hexPoly.square / this.selectedHexes[0].hexPoly.population).toFixed(2)}} м<sup>2</sup>/чел.
           </div>
         </v-sheet>
       </div>

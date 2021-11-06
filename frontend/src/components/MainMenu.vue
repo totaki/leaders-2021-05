@@ -232,7 +232,7 @@
                   </v-expansion-panel-header>
                   <v-expansion-panel-content>
                     <div>
-                      <strong>Площадь:</strong> {{area.square}} км<sup>2</sup>
+                      <strong>Площадь:</strong> {{area.square}} м<sup>2</sup>
                     </div>
                     <div >
                       <strong>Спортивные зоны:</strong> {{areaTypes.find(type => type.id === area.type).name}}
