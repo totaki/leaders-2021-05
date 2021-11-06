@@ -31,6 +31,10 @@ class DepartmentsViewSet(ReadOnlyModelViewSet):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
 
+    @method_decorator(cache_page(60 * 60 * 6))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class FacilitiesViewSet(ReadOnlyModelViewSet):
     queryset = (
@@ -45,6 +49,7 @@ class FacilitiesViewSet(ReadOnlyModelViewSet):
     bbox_filter_field = 'placement'
     pagination_class = LimitOffsetPagination
 
+    @method_decorator(cache_page(60 * 60 * 6))
     @action(detail=True)
     def report(self, request, pk=None):
         facility = self.queryset.select_related("department").get(pk=pk)
@@ -72,6 +77,10 @@ class SportsAreaTypesViewSet(ReadOnlyModelViewSet):
     queryset = SportsAreaType.objects.all()
     serializer_class = SportsAreaTypeSerializer
 
+    @method_decorator(cache_page(60 * 60 * 6))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class SportsAreasViewSet(ReadOnlyModelViewSet):
     queryset = SportsArea.objects.all()
@@ -79,3 +88,7 @@ class SportsAreasViewSet(ReadOnlyModelViewSet):
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ["facility", "type"]
     pagination_class = LimitOffsetPagination
+
+    @method_decorator(cache_page(60 * 60 * 6))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)

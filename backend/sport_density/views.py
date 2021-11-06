@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from collections import Counter
 
 import h3
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django_filters import rest_framework as filters
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
@@ -84,6 +86,7 @@ class BaseHexViewSet(ReadOnlyModelViewSet, ABC):
     def population_density(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
+    @method_decorator(cache_page(60 * 60 * 6))
     @action(detail=False, url_path="hexes-report")
     def hexes_report(self, request, *args, **kwargs):
         qs = self.filter_queryset(self.get_queryset())
@@ -126,6 +129,10 @@ class BaseHexViewSet(ReadOnlyModelViewSet, ABC):
     @abstractmethod
     def get_areas(self):
         pass
+
+    @method_decorator(cache_page(60 * 60 * 6))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class SmallHexViewSet(BaseHexViewSet):
@@ -182,6 +189,7 @@ class ColorBinsViewSet(ReadOnlyModelViewSet, ABC):
     calculation_func = calculate_color_bins_for_hexes_by_square
     model = SquareColorBins
 
+    @method_decorator(cache_page(60 * 60 * 6))
     def list(self, request, *args, **kwargs):
         sport_id = self.request.query_params.get("sport_id", None)
         availability = self.request.query_params.get("availability", None)
