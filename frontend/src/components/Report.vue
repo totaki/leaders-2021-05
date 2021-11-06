@@ -156,6 +156,7 @@ export default {
             return this.$store.getters.areaTypes;
         },
         sportTypes() {
+            if (!this.$store.getters.sportTypes) return []
             return this.$store.getters.sportTypes;
         },
         sportAreasChartDataset() {
@@ -173,7 +174,7 @@ export default {
             }
         },
         sportAreasSquareChartDataset() {
-            if (!this.hexReport) return;
+            if (!this.hexReport || !this.areaTypes) return;
             return {
                 labels: Object.keys(this.hexReport.area_types_coverage).map(type_id => this.areaTypes.find( ar => ar.id === +type_id).name),
                 datasets: [
