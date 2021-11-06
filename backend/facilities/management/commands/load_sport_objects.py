@@ -141,8 +141,12 @@ def save_color_bins(sport_id, availability, bins_by_square, bins_by_square_per_p
     )
 
 
-def calculate_color_bins_for_hexes_by_square(sport_ids, availability, is_big_hexes=True):
-    areas_filter = get_areas_filter(sport_ids=sport_ids, availability=availability)
+def calculate_color_bins_for_hexes_by_square(
+        sport_ids, availability, is_big_hexes=True, area_type=None
+):
+    areas_filter = get_areas_filter(
+        sport_ids=sport_ids, availability=availability, area_type=area_type
+    )
     if is_big_hexes:
         bins_by_square = DataHexBig.objects.color_bins_by_square(areas_filter)
     else:
@@ -150,8 +154,12 @@ def calculate_color_bins_for_hexes_by_square(sport_ids, availability, is_big_hex
     return bins_by_square
 
 
-def calculate_color_bins_for_hexes_by_square_per_person(sport_ids, availability, is_big_hexes=True):
-    areas_filter = get_areas_filter(sport_ids=sport_ids, availability=availability)
+def calculate_color_bins_for_hexes_by_square_per_person(
+        sport_ids, availability, is_big_hexes=True, area_type=None
+):
+    areas_filter = get_areas_filter(
+        sport_ids=sport_ids, availability=availability, area_type=area_type
+    )
     if is_big_hexes:
         bins_by_square_per_person = DataHexBig.objects.color_bins_by_square_per_person(areas_filter)
     else:
@@ -159,10 +167,12 @@ def calculate_color_bins_for_hexes_by_square_per_person(sport_ids, availability,
     return bins_by_square_per_person
 
 
-def calculate_color_bins_for_hexes(sport_ids, availability, is_big_hexes=True):
-    bins_by_square = calculate_color_bins_for_hexes_by_square(sport_ids, availability, is_big_hexes)
+def calculate_color_bins_for_hexes(sport_ids, availability, is_big_hexes=True, area_type=None):
+    bins_by_square = calculate_color_bins_for_hexes_by_square(
+        sport_ids, availability, is_big_hexes, area_type
+    )
     bins_by_square_per_person = calculate_color_bins_for_hexes_by_square_per_person(
-        sport_ids, availability, is_big_hexes
+        sport_ids, availability, is_big_hexes, area_type
     )
     return bins_by_square, bins_by_square_per_person
 

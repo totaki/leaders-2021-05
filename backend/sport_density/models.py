@@ -99,6 +99,7 @@ class SquareColorBins(models.Model):
     sport_id = models.PositiveIntegerField(null=True)
     availability = models.PositiveIntegerField(null=True)
     is_big_hexes = models.BooleanField(default=True)
+    area_type = models.PositiveIntegerField(null=True)
     bins = ArrayField(models.IntegerField(), size=20)
 
     class Meta:
@@ -109,6 +110,7 @@ class SquarePerPersonColorBins(models.Model):
     sport_id = models.PositiveIntegerField(null=True)
     availability = models.PositiveIntegerField(null=True)
     is_big_hexes = models.BooleanField(default=True)
+    area_type = models.PositiveIntegerField(null=True)
     bins = ArrayField(models.FloatField(), size=20)
 
     class Meta:

@@ -61,11 +61,11 @@ class SquareColorBinsSerializer(ModelSerializer):
 
     class Meta:
         model = SquareColorBins
-        fields = ("sport_id", "availability", "is_big_hexes", "bins")
+        fields = ("sport_id", "availability", "area_type", "is_big_hexes", "bins")
 
 
 class SquarePerPersonColorBinsSerializer(ModelSerializer):
 
     class Meta:
         model = SquarePerPersonColorBins
-        fields = ("sport_id", "availability", "is_big_hexes", "bins")
+        fields = ("sport_id", "availability", "area_type", "is_big_hexes", "bins")

@@ -178,7 +178,7 @@ class ColorBinsViewSet(ReadOnlyModelViewSet, ABC):
     serializer_class = SquareColorBinsSerializer
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.DjangoFilterBackend,)
-    filterset_fields = ("sport_id", "availability", "is_big_hexes")
+    filterset_fields = ("sport_id", "availability", "area_type", "is_big_hexes")
     calculation_func = calculate_color_bins_for_hexes_by_square
     model = SquareColorBins
 
@@ -186,6 +186,7 @@ class ColorBinsViewSet(ReadOnlyModelViewSet, ABC):
         sport_id = self.request.query_params.get("sport_id", None)
         availability = self.request.query_params.get("availability", None)
         is_big_hexes = self.request.query_params.get("is_big_hexes", None)
+        area_type = self.request.query_params.get("area_type", None)
         if sport_id is not None:
             sport_id = int(sport_id)
             sport_ids = [sport_id]
@@ -193,13 +194,16 @@ class ColorBinsViewSet(ReadOnlyModelViewSet, ABC):
             sport_ids = None
         if availability:
             availability = int(availability)
+        if area_type:
+            area_type = int(area_type)
         if is_big_hexes is not None:
             is_big_hexes = is_big_hexes == 'true'
 
-        queryset = self.get_queryset().filter(sport_id=sport_id, availability=availability, is_big_hexes=is_big_hexes)
+        queryset = self.get_queryset().filter(
+            sport_id=sport_id, availability=availability, area_type=area_type, is_big_hexes=is_big_hexes
+        )
         if not queryset:
-
-            bins = self.__class__.calculation_func(sport_ids, availability, is_big_hexes)
+            bins = self.__class__.calculation_func(sport_ids, availability, is_big_hexes, area_type=area_type)
             queryset = self.model.objects.create(
                 sport_id=sport_id,
                 availability=availability,

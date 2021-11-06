@@ -315,6 +315,7 @@ export default {
       const payload = {
         sport_id: this.sportFilter?.sports,
         availability: this.sportFilter?.availability,
+        area_type: this.sportFilter?.area_type,
         is_big_hexes: this.isBigHexes
       }
       this.$store.dispatch("getHexBins",payload)

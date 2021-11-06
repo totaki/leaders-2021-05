@@ -160,7 +160,6 @@ const actions = {
     commit("SET_NEW_FACILITY_CANCEL_TOKEN")
     let requests = newTiles.map(([x, y, zoom]) => api.getFacilities({
       tile: `${zoom}/${x}/${y}`,
-      availability: [3, 4],
       limit: 150, ...facilityFilter
     }, state.facilitiesCancelTokenSource.token))
     let facilities = []
@@ -184,7 +183,7 @@ const actions = {
       })
     }
   },
-  getHexBins({commit},params){
+  getHexBins({commit}, params){
     switch (state.selectedBaseLayer) {
       case state.layerNames[1]:
         if (params.is_big_hexes) {
