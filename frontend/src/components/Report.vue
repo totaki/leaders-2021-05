@@ -97,7 +97,7 @@
                         <v-expansion-panel-header>
                             Список доступных видов спорта
                         </v-expansion-panel-header>
-                        <v-expansion-panel-content v-if="sportTypes">
+                        <v-expansion-panel-content v-if="sportTypes && sportTypes.length">
                             <ul class="text-body-2 ml-4" v-for="sport in hexReport.sports" :key="sport">
                                 <li>{{sportTypes.find( ar => ar.id === +sport).name}}</li>
                             </ul>
@@ -107,7 +107,7 @@
                         <v-expansion-panel-header>
                             Суммарная площадь по типу спортивной зоны
                         </v-expansion-panel-header>
-                        <v-expansion-panel-content v-if="areaTypes">
+                        <v-expansion-panel-content v-if="areaTypes.length">
                             <ul class="text-body-2 ml-4" v-for="area in Object.entries(hexReport.area_types_coverage)" :key="area[0]">
                                 <li>{{areaTypes.find( ar => ar.id === +area[0]).name}}: {{Math.round(area[1])}} м<sup>2</sup></li>
                             </ul>
@@ -117,7 +117,7 @@
                         <v-expansion-panel-header>
                             Количество спортивных зон
                         </v-expansion-panel-header>
-                        <v-expansion-panel-content v-if="areaTypes">
+                        <v-expansion-panel-content v-if="areaTypes.length">
                             <ul class="text-body-2 ml-4" v-for="area in Object.entries(hexReport.area_types_counter)" :key="Math.random(area[0])">
                                 <li>{{areaTypes.find( ar => ar.id === +area[0]).name}}: {{Math.round(area[1])}} шт.</li>
                             </ul>
@@ -153,14 +153,15 @@ export default {
             return this.$store.getters.hexReport
         },
         areaTypes() {
+            if (this.$store.getters.areaTypes.length <= 1) return []
             return this.$store.getters.areaTypes;
         },
         sportTypes() {
-            if (!this.$store.getters.sportTypes) return []
+            if (!this.$store.getters.sportTypes.length <= 1) return []
             return this.$store.getters.sportTypes;
         },
         sportAreasChartDataset() {
-            if (!this.hexReport || !this.areaTypes) return;
+            if (!this.hexReport || !this.areaTypes || !this.areaTypes.length ) return;
             return {
                 labels: Object.keys(this.hexReport.area_types_counter).map(type_id => this.areaTypes.find( ar => ar.id === +type_id).name),
                 datasets: [
@@ -173,7 +174,8 @@ export default {
             }
         },
         sportAreasSquareChartDataset() {
-            if (!this.hexReport || !this.areaTypes) return;
+            if (!this.hexReport || !this.areaTypes || !this.areaTypes.length) return;
+
             return {
                 labels: Object.keys(this.hexReport.area_types_coverage).map(type_id => this.areaTypes.find( ar => ar.id === +type_id).name),
                 datasets: [
@@ -202,6 +204,8 @@ export default {
         }
     },
     mounted(){
+        this.$store.dispatch("getAreaTypes");
+        this.$store.dispatch("getSportTypes");
         this.$store.dispatch("getHexReport", {isBig: this.$route.params.isBig, ids: {ids: JSON.parse(this.$route.params.ids)}})
     },
 }
