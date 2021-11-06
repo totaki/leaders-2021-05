@@ -97,7 +97,7 @@
                         <v-expansion-panel-header>
                             Список доступных видов спорта
                         </v-expansion-panel-header>
-                        <v-expansion-panel-content v-if="sportTypes && sportTypes.length">
+                        <v-expansion-panel-content v-if="sportTypes.length">
                             <ul class="text-body-2 ml-4" v-for="sport in hexReport.sports" :key="sport">
                                 <li>{{sportTypes.find( ar => ar.id === +sport).name}}</li>
                             </ul>
@@ -157,7 +157,7 @@ export default {
             return this.$store.getters.areaTypes;
         },
         sportTypes() {
-            if (!this.$store.getters.sportTypes.length <= 1) return []
+            if (this.$store.getters.sportTypes.length <= 1) return []
             return this.$store.getters.sportTypes;
         },
         sportAreasChartDataset() {
