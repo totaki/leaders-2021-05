@@ -3,6 +3,8 @@
     ref="map"
     style="height: 100%; position: relative; z-index: 1"
     :zoom="startZoom"
+    :minZoom="11"
+    :maxZoom="18"
     :center="center"
     @update:bounds="update"
     @update:zoom="onZoom"
